@@ -1,0 +1,37 @@
+{
+  "name": "server-helper",
+  "version": "0.1.0",
+  "description": "A Nodejs Lib for easy development on server-side scripting",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AkashBabu/server-helper.git"
+  },
+  "keywords": [
+    "server",
+    "helper",
+    "crud",
+    "mongo",
+    "mongodb"
+  ],
+  "author": "Akash Babu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AkashBabu/server-helper/issues"
+  },
+  "homepage": "https://github.com/AkashBabu/server-helper#readme",
+  "devDependencies": {
+    "body-parser": "^1.15.2",
+    "chai": "^3.5.0",
+    "express": "^4.14.0",
+    "mocha": "^3.1.2"
+  },
+  "dependencies": {
+    "async": "^2.1.2",
+    "chance": "^1.0.4",
+    "mongojs": "^2.4.0"
+  }
+}
