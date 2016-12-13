@@ -1,11 +1,11 @@
-var helper = require('./lib/helper');
-var helperDb = require('./lib/helperDb');
-var crud = require('./lib/crud');
+var helper = require('../lib/helper');
+var helperDb = require('../lib/helperDb');
+var crud = require('../lib/crud');
 
 var assert = require('chai').assert;
 
 describe('server-helper', () => {
-    describe.only('helper', () => {
+    describe('helper', () => {
         describe('#appendCtime', () => {
             it('should add a property ctime with the current Date object', () => {
                 var obj = {};
@@ -68,69 +68,104 @@ describe('server-helper', () => {
             })
         });
 
-        describe('#validateFieldsExistence', () => {
+        describe('#validateFieldNamesExistence', () => {
             it('should return true when object contains all the fields in the array', () => {
-                assert.isTrue(helper.validateFieldsExistence({
+                assert.isTrue(helper.validateFieldNamesExistence({
                     a: 1,
                     b: 2,
                     c: 3
-                }, ['a', 'b']));
+                }, ['a', 'b'], false));
             });
             it('should return false when object doesnt contain all the fields in the array', () => {
-                assert.isFalse(helper.validateFieldsExistence({
+                assert.isFalse(helper.validateFieldNamesExistence({
                     a: 1
-                }, ['a', 'b']));
-            });
-            it('should throw an error if the first argument is not an object', () => {
-                assert.throws(function() {
-                    helper.validateFieldsExistence([], []);
-                }, 'wrong inputs');
-            });
-            it('should throw an error if the second argument is not an Array', () => {
-                assert.throws(function() {
-                    helper.validateFieldsExistence([], {});
-                }, 'wrong inputs');
-            });
-            it('should throw an error if two arguments are not passed', () => {
-                assert.throws(function() {
-                    helper.validateFieldsExistence({});
-                }, 'wrong inputs');
+                }, ['a', 'b'], false));
             });
         });
 
-        describe('#validateFieldsExistenceStrict', () => {
+        describe('#validateFieldNamesExistenceStrict', () => {
             it('should return true if Object contains only the properties specified in the array', () => {
-                assert.isTrue(helper.validateFieldsExistenceStrict({
+                assert.isTrue(helper.validateFieldNamesExistence({
                     a: 1,
                     b: 2
-                }, ['a', 'b']));
+                }, ['a', 'b'], true));
             });
             it('should return false if Object containes lesser properties than specified in the array', () => {
-                assert.isFalse(helper.validateFieldsExistenceStrict({
+                assert.isFalse(helper.validateFieldNamesExistence({
                     a: 1
-                }, ['a', 'b']))
+                }, ['a', 'b'], true))
             });
             it('should return false if Object containes more properties than specified in the array', () => {
-                assert.isFalse(helper.validateFieldsExistenceStrict({
+                assert.isFalse(helper.validateFieldNamesExistence({
                     a: 1,
                     b: 2
-                }, ['a']))
+                }, ['a'], true))
             });
-            it('should throw an error if the first argument is not an object', () => {
-                assert.throws(function() {
-                    helper.validateFieldsExistence([], []);
-                }, 'wrong inputs');
-            });
-            it('should throw an error if the second argument is not an Array', () => {
-                assert.throws(function() {
-                    helper.validateFieldsExistence([], {});
-                }, 'wrong inputs');
-            });
-            it('should throw an error if two arguments are not passed', () => {
-                assert.throws(function() {
-                    helper.validateFieldsExistence({});
-                }, 'wrong inputs');
-            });
+        });
+
+        describe('#validateFieldNamesExistence', function(){
+            it('should validate length of given fields in strict mode', function(){
+                var obj = {
+                    name: 'akash',
+                    age: 21
+                }
+
+                assert.isTrue(helper.validateFieldsExistence(obj, [{name: 'name', type: String}, {name: 'age', type: Number}], true), 'Does not match the length of given fields in strict mode');
+            })
+
+            it('should validate type of each field', function(){
+                var obj = {
+                    name: 'akash',
+                    age: 21,
+                    gender: 'male'
+                }
+
+                assert.isTrue(helper.validateFieldsExistence(obj, [{name: 'name', type: String}, {name: 'age', type: Number}], false), 'Does not validate the field type');
+            })
+
+            it('should return false on invalid field names', function(){
+                var obj = {
+                    name: 'akash',
+                    age: 21
+                }
+
+                assert.isFalse(helper.validateFieldsExistence(obj, [{name: 'names', type: String}, {name: 'age', type: Number}], true), 'Does not return false on invalid field names');
+            })
+
+            it('should return false for more number of field specs', function(){
+                var obj = {
+                    name: 'akash',
+                    age: 21
+                }
+
+                assert.isFalse(helper.validateFieldsExistence(obj, [{name: 'names', type: String}, {name: 'age', type: Number}, {name: 'gender', type: String}], true), 'Does not return false on invalid field names');
+            })
+
+            it('should return true when specs are exactly matching the object in strict mode', function(){
+                 var obj = {
+                    name: 'akash',
+                    age: 21,
+                    address: {
+                        no: 21,
+                        place: 'bangalore',
+                        state: 'karnataka',
+                        country: 'India'
+                    },
+                    hobbies: [1,2,3,4]
+                }
+
+                assert.isTrue(helper.validateFieldsExistence(obj, [{name: 'name', type: String}, {name: 'age', type: Number}, {name: 'address', type: Object}, {name: 'hobbies', type: Array}], true), 'Does not validate the field name and their type');
+            })
+        })
+
+        describe('#saltHash', function(){
+            it('should return an encrypted password that cannot be partialised as secret and password', function(){
+                var pwd = 'secret';
+                var encrypted = helper.saltHash(pwd)
+                assert.isTrue(pwd != encrypted, 'password is not encrypted');
+                assert.isTrue(helper.verifySaltHash(encrypted, pwd), 'password could not be retrieved');
+            })
+
         })
 
     });
