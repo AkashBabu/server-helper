@@ -1,42 +1,4 @@
 {
-  "_args": [
-    [
-      "server-helper",
-      "/home/orangepi/Documents/temp"
-    ]
-  ],
-  "_from": "server-helper@latest",
-  "_id": "server-helper@0.2.0",
-  "_inCache": true,
-  "_installable": true,
-  "_location": "/server-helper",
-  "_nodeVersion": "4.5.0",
-  "_npmOperationalInternal": {
-    "host": "packages-18-east.internal.npmjs.com",
-    "tmp": "tmp/server-helper-0.2.0.tgz_1478176384740_0.33333723968826234"
-  },
-  "_npmUser": {
-    "email": "001akashbabu@gmail.com",
-    "name": "akashbabu"
-  },
-  "_npmVersion": "2.15.9",
-  "_phantomChildren": {},
-  "_requested": {
-    "name": "server-helper",
-    "raw": "server-helper",
-    "rawSpec": "",
-    "scope": null,
-    "spec": "latest",
-    "type": "tag"
-  },
-  "_requiredBy": [
-    "#USER"
-  ],
-  "_resolved": "https://registry.npmjs.org/server-helper/-/server-helper-0.2.0.tgz",
-  "_shasum": "ca7a3a1c079bb2a5c8f276cbe68938ce42683c46",
-  "_shrinkwrap": null,
-  "_spec": "server-helper",
-  "_where": "/home/orangepi/Documents/temp",
   "author": {
     "name": "Akash Babu"
   },
@@ -46,6 +8,7 @@
   "dependencies": {
     "async": "^2.1.2",
     "chance": "^1.0.4",
+    "logger-switch": "^1.0.1",
     "mongojs": "^2.4.0"
   },
   "description": "A Nodejs Lib for easy development on server-side scripting",
@@ -55,7 +18,6 @@
     "express": "^4.14.0",
     "mocha": "^3.1.2"
   },
-  "directories": {},
   "dist": {
     "shasum": "ca7a3a1c079bb2a5c8f276cbe68938ce42683c46",
     "tarball": "https://registry.npmjs.org/server-helper/-/server-helper-0.2.0.tgz"
@@ -86,5 +48,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.6.0"
+  "version": "0.6.1"
 }
