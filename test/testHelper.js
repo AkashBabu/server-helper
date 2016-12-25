@@ -1,72 +1,13 @@
-var helper = require('../lib/helper');
-var helperDb = require('../lib/helperMongo');
+var Helper = require('../lib/helper');
+var helper = new Helper();
+var HelperMongo = require('../lib/helperMongo');
+var helperMongo = new HelperMongo('test');
 var crud = require('../lib/crud');
 
 var assert = require('chai').assert;
 
 describe('server-helper', () => {
     describe('helper', () => {
-        // describe('#appendCtime', () => {
-        //     it('should add a property ctime with the current Date object', () => {
-        //         var obj = {};
-        //         helper.appendCtime(obj);
-        //         assert.property(obj, 'ctime');
-        //     });
-        //     it('should throw an error when no parameter is passed', () => {
-        //         assert.throws(function() {
-        //             helper.appendCtime()
-        //         }, 'wrong input');
-        //     })
-        //     it('should throw an error when the input is not Obejct', () => {
-        //         assert.throws(function() {
-        //             helper.appendCtime([]);
-        //         }, 'wrong input');
-        //     })
-        // });
-
-        // describe('#appendUtime', () => {
-        //     it('should add a property utime with the current Date object', () => {
-        //         var obj = {};
-        //         helper.appendUtime(obj);
-        //         assert.property(obj, 'utime');
-        //     });
-        //     it('should throw an error when no parameter is passed', () => {
-        //         assert.throws(function() {
-        //             helper.appendUtime()
-        //         }, 'wrong input');
-        //     })
-        //     it('should throw an error when the input is not Obejct', () => {
-        //         assert.throws(function() {
-        //             helper.appendUtime([]);
-        //         }, 'wrong input');
-        //     })
-        // });
-
-        // describe('#updateUtime', () => {
-        //     it('should update a property utime with the current Date object', () => {
-        //         var obj = {
-        //             utime: 123
-        //         };
-        //         helper.updateUtime(obj);
-        //         assert.equal(obj.utime.constructor, Date);
-        //     });
-        //     it('should throw an error if the passed object doent contain property "utime"', () => {
-        //         var obj = {};
-        //         assert.throws(function() {
-        //             helper.updateUtime(obj);
-        //         }, 'wrong input');
-        //     })
-        //     it('should throw an error when no parameter is passed', () => {
-        //         assert.throws(function() {
-        //             helper.updateUtime()
-        //         }, 'wrong input');
-        //     })
-        //     it('should throw an error when the input is not Obejct', () => {
-        //         assert.throws(function() {
-        //             helper.appendUtime([]);
-        //         }, 'wrong input');
-        //     })
-        // });
 
         describe('#validateFieldNamesExistence', () => {
             it('should return true when object contains all the fields in the array', () => {
@@ -159,7 +100,7 @@ describe('server-helper', () => {
              it('should apply formatting and transform functions', function(){
                  var obj = {
                     name: 'akash',
-                    age: 26,
+                    age: '26',
                     address: {
                         no: 21,
                         place: 'bangalore',
@@ -169,16 +110,27 @@ describe('server-helper', () => {
                     hobbies: [1,2,3,4]
                 }
 
-                function minAge(age){
-                    return age < 25;
+                function ageRange(age, min, max){
+                    // console.log(arguments);
+                    if(age < min || age > max){
+                     return false;
+                    }
+                    return true;
                 }
 
-                function sum (data){
-                    return data.reduce((sum, next) => {
+                function anotherRange(age, min, max){
+                    if(age < min || age > max){
+                     return false;
+                    }
+                    return true;
+                }
+
+                function sum (data, last){
+                    return last + data.reduce((sum, next) => {
                         return sum += next;
                     })
                 }    
-                assert.isTrue(helper.validateFieldsExistence(obj, [{name: 'name', type: String}, {name: 'age', type: Number, validate: minAge}, {name: 'address', type: Object}, {name: 'hobbies', type: Array, transform: sum}], true), 'Does not validate the field name and their type');
+                assert.isTrue(helper.validateFieldsExistence(obj, [{name: 'name', type: String}, {name: 'age', type: [Number, String], validate: [ageRange, anotherRange], validateArgs: [[10, 30], [20, 26]]}, {name: 'address', type: Object}, {name: 'hobbies', type: Array, transform: sum}], true), 'Does not validate the field name and their type');
                 console.log('obj:', obj);
             })
         })
