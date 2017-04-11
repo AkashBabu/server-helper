@@ -9,7 +9,7 @@
     "async": "^2.1.2",
     "chance": "^1.0.4",
     "logger-switch": "^2.0.0",
-    "moment": "^2.17.1",
+    "moment": "^2.18.1",
     "mongojs": "^2.4.0",
     "string": "^3.3.3"
   },
