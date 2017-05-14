@@ -1,6 +1,6 @@
 var serverHelper = require('../../index');
 var Helper = serverHelper.Helper;
-var helper = new Helper(true);
+var helper = new Helper(false);
 
 var chai = require('chai');
 var assert = chai.assert
@@ -76,10 +76,10 @@ describe('helper', () => {
     describe("#prefixToQueryObject()", () => {
         it("should add the specified prefix to each key in the object", () => {
             var obj = {
-                a: 1,
-                b : 1
-            },
-            prefix = "test"
+                    a: 1,
+                    b: 1
+                },
+                prefix = "test"
 
             var converted = helper.prefixToQueryObject(prefix, obj)
             converted[prefix + "a"].should.be.ok
@@ -151,21 +151,19 @@ describe('helper', () => {
                 a: 1,
                 b: 2
             }
-            var validations = [
-                {
-                    name: 'a',
-                    type: Number
-                }, {
-                    name: 'b', 
-                    type: Number
-                }, { 
-                    name: 'c',
-                    type: Number
-                }
-            ] 
+            var validations = [{
+                name: 'a',
+                type: Number
+            }, {
+                name: 'b',
+                type: Number
+            }, {
+                name: 'c',
+                type: Number
+            }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 err.should.be.ok
-                err.should.be.eql("Missing Fields") 
+                err.should.be.eql("Missing Fields")
                 done()
             })
         })
@@ -175,15 +173,13 @@ describe('helper', () => {
                 b: 2,
                 c: 3
             }
-            var validations = [
-                {
-                    name: 'a',
-                    type: Number
-                }, {
-                    name: 'b',
-                    type: Number
-                }
-            ]    
+            var validations = [{
+                name: 'a',
+                type: Number
+            }, {
+                name: 'b',
+                type: Number
+            }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 assert.isNull(err)
                 assert.sameMembers(['a', 'b'], Object.keys(obj), 'same Members')
@@ -191,7 +187,7 @@ describe('helper', () => {
             })
         })
         it("should check the type for each field", (done) => {
-            var obj = {a: 1, b: 2, c: "Hi"}
+            var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number
@@ -210,7 +206,7 @@ describe('helper', () => {
             })
         })
         it("should check if multiple types are specified", (done) => {
-            var obj = {a: 1, b: 2, c: "Hi"}
+            var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number
@@ -228,11 +224,11 @@ describe('helper', () => {
             })
         })
         it("should apply validate function", (done) => {
-            function validateFn (d) {
+            function validateFn(d) {
                 return d > 10
             }
 
-            var obj = {a: 1, b: 2, c: "Hi"}
+            var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number,
@@ -252,16 +248,16 @@ describe('helper', () => {
             })
         })
         it("should apply mulitple validate functions", (done) => {
-            function validateFn1 (d) {
+            function validateFn1(d) {
                 return d > 10
             }
 
-            function validateFn2 (d) {
+            function validateFn2(d) {
                 return d < 30
             }
 
 
-            var obj = {a: 100, b: 2, c: "Hi"}
+            var obj = { a: 100, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number,
@@ -281,12 +277,12 @@ describe('helper', () => {
             })
         })
         it("should apply transform function", (done) => {
-            function transformFn (d) {
+            function transformFn(d) {
                 return d * 10
             }
 
 
-            var obj = {a: 100, b: 2, c: "Hi"}
+            var obj = { a: 100, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number,
@@ -307,13 +303,14 @@ describe('helper', () => {
         })
         it("should apply async validate function", function(done) {
             this.timeout(2000)
-            function validateFn (d, cb) {
+
+            function validateFn(d, cb) {
                 setTimeout(function() {
                     cb(null, d > 10)
                 }, 50)
             }
 
-            var obj = {a: 1, b: 2, c: "Hi"}
+            var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number,
@@ -334,20 +331,21 @@ describe('helper', () => {
         })
         it("should apply mulitple async validate functions", function(done) {
             this.timeout(3000)
-            function validateFn1 (d, cb) {
+
+            function validateFn1(d, cb) {
                 setTimeout(function() {
                     cb(null, d > 10)
                 }, 50)
             }
 
-            function validateFn2 (d, cb) {
+            function validateFn2(d, cb) {
                 setTimeout(function() {
                     cb(null, d < 30)
                 }, 50)
             }
 
 
-            var obj = {a: 100, b: 2, c: "Hi"}
+            var obj = { a: 100, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number,
@@ -369,7 +367,7 @@ describe('helper', () => {
         it("should apply async transform function", function(done) {
             this.timeout(2000)
 
-            function transformFn (d, cb) {
+            function transformFn(d, cb) {
                 setTimeout(function() {
                     cb(null, d * 10)
 
@@ -377,7 +375,7 @@ describe('helper', () => {
             }
 
 
-            var obj = {a: 100, b: 2, c: "Hi"}
+            var obj = { a: 100, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number,
@@ -394,8 +392,8 @@ describe('helper', () => {
                 done()
             })
         })
-        it("should return the given error message", (done ) => {
-            var obj = {a: "1", b: 2, c: "Hi"}
+        it("should return the given error message", (done) => {
+            var obj = { a: "1", b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number,
@@ -414,10 +412,10 @@ describe('helper', () => {
             })
         })
         it("should return general error message if validation fails and no validateErrMsg is specified", (done) => {
-            function validateFn (d) {
+            function validateFn(d) {
                 return d > 10
             }
-            var obj = {a: 1, b: 2, c: "Hi"}
+            var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
                 type: Number,
@@ -437,11 +435,12 @@ describe('helper', () => {
             })
         })
         it("should apply different validateArgs for Each validation", (done) => {
-            function validateFn1 (a, b) {
+            function validateFn1(a, b) {
                 // console.log("args 1:", arguments);
                 return a > b
             }
-            function validateFn2 (a, b) {
+
+            function validateFn2(a, b) {
                 // console.log("args 2:", arguments);
                 return a > b
             }
@@ -464,20 +463,18 @@ describe('helper', () => {
         })
     })
 
-    describe('#validateFieldsExistence()', function () {
+    describe('#validateFieldsExistence()', function() {
         it("should validate length of fields against object keys in strict mode", () => {
             var obj = {
                 a: 1,
                 // b: "1",
                 // c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                }, {
-                    name: 'b'
-                }
-            ]
+            var validations = [{
+                name: "a",
+            }, {
+                name: 'b'
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.not.be.ok;
         })
@@ -487,18 +484,16 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number
-                }, {
-                    name: 'b',
-                    type: String 
-                }, {
-                    name: "c",
-                    type: Number
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number
+            }, {
+                name: 'b',
+                type: String
+            }, {
+                name: "c",
+                type: Number
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.be.ok;
         })
@@ -508,18 +503,16 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number 
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }, {
-                    name: "c",
-                    type: Number
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }, {
+                name: "c",
+                type: Number
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.be.ok;
         })
@@ -529,15 +522,13 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number 
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }]
 
             helper.validateFieldsExistence(obj, validations, false)
             assert.sameMembers(Object.keys(obj), ['a', 'b', 'c'], 'Does not have the same keys')
@@ -548,21 +539,19 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number 
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }]
 
             helper.validateFieldsExistence(obj, validations, true)
             assert.sameMembers(Object.keys(obj), ['a', 'b'], 'Does not have the same keys')
         })
         it("should apply validation fn", () => {
-            function validateFn1 (d) {
+            function validateFn1(d) {
                 return d > 10
             }
             var obj = {
@@ -570,24 +559,22 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number,
-                    validate: validateFn1,
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }, {
-                    name: "c",
-                    type: Number
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number,
+                validate: validateFn1,
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }, {
+                name: "c",
+                type: Number
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.not.be.ok;
         })
         it("should apply validation args for validation fn", () => {
-            function validateFn1 (a, b) {
+            function validateFn1(a, b) {
                 // console.log(arguments);
                 return a > b
             }
@@ -596,25 +583,25 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number,
-                    validate: validateFn1,
-                    validateArgs: [[0]]
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }, {
-                    name: "c",
-                    type: Number
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number,
+                validate: validateFn1,
+                validateArgs: [
+                    [0]
+                ]
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }, {
+                name: "c",
+                type: Number
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.be.ok;
         })
         it("should apply transform fn", () => {
-            function transformFn1 (a) {
+            function transformFn1(a) {
                 return a * 10
             }
             var obj = {
@@ -622,25 +609,23 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number,
-                    transform: transformFn1
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }, {
-                    name: "c",
-                    type: Number
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number,
+                transform: transformFn1
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }, {
+                name: "c",
+                type: Number
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.be.ok;
             obj.a.should.be.eql(10)
         })
         it("should apply transform args for transform fn", () => {
-            function transformFn1 (a, b) {
+            function transformFn1(a, b) {
                 return a * b
             }
             var obj = {
@@ -648,29 +633,28 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number,
-                    transform: transformFn1,
-                    transformArgs: 2
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }, {
-                    name: "c",
-                    type: Number
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number,
+                transform: transformFn1,
+                transformArgs: 2
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }, {
+                name: "c",
+                type: Number
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.be.ok;
             obj.a.should.be.eql(2)
         })
         it("should apply validations and transformation", () => {
-            function validateFn1 (a, b) {
+            function validateFn1(a, b) {
                 return a > b
             }
-            function transformFn1 (a, b) {
+
+            function transformFn1(a, b) {
                 return a * b
             }
             var obj = {
@@ -678,33 +662,32 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                {
-                    name: "a",
-                    type: Number,
-                    validate: validateFn1,
-                    validateArgs: 1,
-                    transform: transformFn1,
-                    transformArgs: 5
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }, {
-                    name: "c",
-                    type: Number
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number,
+                validate: validateFn1,
+                validateArgs: 1,
+                transform: transformFn1,
+                transformArgs: 5
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }, {
+                name: "c",
+                type: Number
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.be.ok;
             obj.a.should.be.eql(25)
         })
         it("should apply validations args for corresponding validation fn", () => {
-            function validateFn1 (a, b) {
-                console.log("args1:", arguments);
+            function validateFn1(a, b) {
+                // console.log("args1:", arguments);
                 return a > b
             }
-            function validateFn2 (a, b) {
-                console.log("args2:", arguments);
+
+            function validateFn2(a, b) {
+                // console.log("args2:", arguments);
                 return a < b
             }
             var obj = {
@@ -712,27 +695,25 @@ describe('helper', () => {
                 b: "1",
                 c: 123
             }
-            var validations = [
-                { 
-                    name: "a",
-                    type: Number,
-                    validate: [validateFn1, validateFn2],
-                    validateArgs: [1, 10],
-                }, {
-                    name: 'b',
-                    type: [Number, String] 
-                }, {
-                    name: "c",
-                    type: Number
-                }
-            ]
+            var validations = [{
+                name: "a",
+                type: Number,
+                validate: [validateFn1, validateFn2],
+                validateArgs: [1, 10],
+            }, {
+                name: 'b',
+                type: [Number, String]
+            }, {
+                name: "c",
+                type: Number
+            }]
 
             helper.validateFieldsExistence(obj, validations, true).should.be.ok;
         })
     })
 
-    describe('#saltHash', function () {
-        it('should return an encrypted password that cannot be partialised as secret and password', function () {
+    describe('#saltHash', function() {
+        it('should return an encrypted password that cannot be partialised as secret and password', function() {
             var pwd = 'secret';
             var encrypted = helper.saltHash(pwd)
             assert.isTrue(pwd != encrypted, 'password is not encrypted');
