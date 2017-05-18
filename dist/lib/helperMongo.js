@@ -1,7 +1,7 @@
 "use strict";
 const sh_mongo = require("mongojs");
 const sh_async = require("async");
-const sh_Logger = require("logger-switch");
+const sh_Logger = require('logger-switch');
 class HelperMongo {
     constructor(connStr, debug) {
         this.sh_logger = new sh_Logger('sh-mongo');

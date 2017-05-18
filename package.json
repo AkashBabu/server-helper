@@ -34,7 +34,8 @@
     "mongodb"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "/dist/types/index.d.ts",
   "maintainers": [
     {
       "email": "001akashbabu@gmail.com",

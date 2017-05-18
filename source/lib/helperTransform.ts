@@ -39,17 +39,12 @@ export class HelperTransform implements IHelperTransform {
         try {
             return sh_mongo.ObjectId(id);
         } catch (err) {
-            this.sh_logger.err(err)
+            this.sh_logger.error(err)
             return null;
         }
     }
     toDate(dateStr: string): Date {
-        try {
-            return new Date(dateStr)
-        } catch (err) {
-            this.sh_logger.error(err)
-            return null
-        }
+        return new Date(dateStr)
     }
     toMoment(dateStr: string): object {
         try {

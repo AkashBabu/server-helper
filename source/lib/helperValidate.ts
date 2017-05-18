@@ -66,22 +66,7 @@ export class HelperValidate implements IHelperValidate {
         return /^[a-zA-Z0-9]+$/.test(data);
     }
     isDate(dateStr: string, format: string): boolean {
-        if (format) {
-            try {
-                sh_moment(dateStr, format)
-                return true;
-            } catch (err) {
-                return false;
-            }
-        } else {
-
-            try {
-                sh_moment(dateStr);
-                return true;
-            } catch (err) {
-                return false;
-            }
-        }
+        return sh_moment(dateStr, format)._isValid;
     }
     isRegex(data: string, regexStr: string): boolean {
         let regex = new RegExp(regexStr);

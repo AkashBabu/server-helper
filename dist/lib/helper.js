@@ -1,8 +1,8 @@
 "use strict";
 const sh_Chance = require("chance");
 const sh_crypto = require("crypto");
-const sh_Logger = require("logger-switch");
-const sh_async = require("async");
+const sh_Logger = require('logger-switch');
+const sh_async = require('async');
 class Helper {
     constructor(debug) {
         this.sh_logger = new sh_Logger('sh-helper');
@@ -22,7 +22,7 @@ class Helper {
         return obj;
     }
     weakPwd(pwd, config) {
-        var error;
+        let error;
         pwd = pwd || "";
         Object.keys(config).forEach(key => {
             switch (key) {
@@ -42,11 +42,10 @@ class Helper {
         });
         return error;
     }
-    prefixToQueryobject(prefix, obj) {
-        var query = {};
-        var key;
+    prefixToQueryObject(prefix, obj) {
+        let query = {};
         Object.keys(obj).forEach((key) => {
-            query[prefix + key] + obj[key];
+            query[prefix + key] = obj[key];
         });
         return query;
     }
@@ -59,8 +58,7 @@ class Helper {
         });
     }
     validateFieldsExistenceCb(obj, fieldSpecs, strict, callback) {
-        var self = this;
-        var cbCalled = false;
+        let cbCalled = false;
         if (strict == true) {
             if (Object.keys(obj).length < fieldSpecs.length) {
                 cbCalled = true;
@@ -69,22 +67,35 @@ class Helper {
                 });
             }
             else if (Object.keys(obj).length > fieldSpecs.length) {
-                self.filterObj(obj, fieldSpecs.map((spec) => spec.name));
+                this.filterObj(obj, fieldSpecs.map((spec) => spec.name));
             }
         }
         if (!cbCalled) {
             sh_async.eachSeries(fieldSpecs, (fieldSpec, cb) => {
-                var errMsg1 = fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name;
-                if (!self.isUndefined(obj[fieldSpec.name])) {
-                    if (fieldSpec.type.constructor == Array) {
-                        if (fieldSpec.type.indexOf(obj[fieldSpec.name].constructor) == -1) {
-                            self.sh_logger.log('Invalid Type:', fieldSpec.name);
+                let errMsg1 = fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name;
+                if (!this.isUndefined(obj[fieldSpec.name])) {
+                    if (Array.isArray(fieldSpec.type)) {
+                        let validType = false;
+                        if (fieldSpec.type.indexOf('array') > -1) {
+                            validType = Array.isArray(obj[fieldSpec.name]);
+                        }
+                        if (!validType && fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) == -1) {
+                            this.sh_logger.log('Invalid Type:', fieldSpec.name);
                             return cb(errMsg1, false);
                         }
                     }
-                    else if (obj[fieldSpec.name].constructor != fieldSpec.type) {
-                        self.sh_logger.log('Invalid Type:', fieldSpec.name);
-                        return cb(errMsg1, false);
+                    else {
+                        let validType = false;
+                        if (fieldSpec.type == 'array') {
+                            validType = Array.isArray(obj[fieldSpec.name]);
+                        }
+                        else {
+                            validType = fieldSpec.type == typeof obj[fieldSpec.name];
+                        }
+                        if (!validType) {
+                            this.sh_logger.log('Invalid Type:', fieldSpec.name);
+                            return cb(errMsg1, false);
+                        }
                     }
                     !fieldSpec.validateArgs && (fieldSpec.validateArgs = []);
                     if (fieldSpec.validateArgs.constructor != Array) {
@@ -93,19 +104,19 @@ class Helper {
                     if (!fieldSpec.validate) {
                         fieldSpec.validate = [];
                     }
-                    if (fieldSpec.validate.constructor == Function) {
+                    if (typeof fieldSpec.validate == 'function') {
                         fieldSpec.validate = [fieldSpec.validate];
                     }
                     if (!fieldSpec.validateErrMsg) {
                         fieldSpec.validateErrMsg = [];
                     }
-                    else if (fieldSpec.validateErrMsg.constructor != Array) {
+                    else if (!Array.isArray(fieldSpec.validateErrMsg)) {
                         fieldSpec.validateErrMsg = [fieldSpec.validateErrMsg];
                     }
-                    var loop = 0;
-                    sh_async.eachSeries(fieldSpec.validate, function (validate, cb1) {
-                        var errMsg = fieldSpec.validateErrMsg[loop] ? fieldSpec.validateErrMsg[loop] : (fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name);
-                        var validateArgs = fieldSpec.validateArgs[loop] || [];
+                    let loop = 0;
+                    sh_async.eachSeries(fieldSpec.validate, (validate, cb1) => {
+                        let errMsg = fieldSpec.validateErrMsg[loop] ? fieldSpec.validateErrMsg[loop] : (fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name);
+                        let validateArgs = fieldSpec.validateArgs[loop] || [];
                         loop++;
                         if (validateArgs.constructor != Array) {
                             validateArgs = [validateArgs];
@@ -114,12 +125,12 @@ class Helper {
                             validateArgs = validateArgs.slice(0);
                         }
                         validateArgs.unshift(obj[fieldSpec.name]);
-                        var argsLen = validateArgs.length;
+                        let argsLen = validateArgs.length;
                         if (validate.length > argsLen) {
+                            let self = this;
                             function callback(err, result) {
-                                var self1 = this;
                                 if (err) {
-                                    self.sh_logger.log("Validation Failed:", self1.name);
+                                    self.sh_logger.log("Validation Failed:", this.name);
                                     cb1(err, false);
                                 }
                                 else {
@@ -127,7 +138,7 @@ class Helper {
                                         cb1(null, true);
                                     }
                                     else {
-                                        self.sh_logger.log("Validation Failed:", self1.name);
+                                        self.sh_logger.log("Validation Failed:", this.name);
                                         cb1(errMsg, false);
                                     }
                                 }
@@ -137,14 +148,14 @@ class Helper {
                         }
                         else {
                             if (!validate.apply(null, validateArgs)) {
-                                self.sh_logger.log('Validation Failed:', fieldSpec.name);
+                                this.sh_logger.log('Validation Failed:', fieldSpec.name);
                                 cb1(errMsg, false);
                             }
                             else {
                                 cb1(null, true);
                             }
                         }
-                    }, function (err, done) {
+                    }, (err, done) => {
                         if (err) {
                             cb(err, false);
                         }
@@ -156,12 +167,12 @@ class Helper {
                                 else {
                                     fieldSpec.transformArgs = [obj[fieldSpec.name]];
                                 }
-                                var argsLen = fieldSpec.transformArgs.length;
+                                let argsLen = fieldSpec.transformArgs.length;
                                 if (fieldSpec.transform.length > argsLen) {
+                                    let self = this;
                                     function callback(err, result) {
-                                        var self1 = this;
                                         if (err) {
-                                            self.sh_logger("Transform Failed:", self1.name);
+                                            self.sh_logger("Transform Failed:", this.name);
                                             cb(err, false);
                                         }
                                         else {
@@ -170,7 +181,7 @@ class Helper {
                                                 cb(null, true);
                                             }
                                             else {
-                                                self.sh_logger("Transform Failed:", self1.name);
+                                                self.sh_logger("Transform Failed:", this.name);
                                                 cb(errMsg1, false);
                                             }
                                         }
@@ -190,14 +201,19 @@ class Helper {
                     });
                 }
                 else {
-                    this.sh_logger.log('Field Not Defined:', fieldSpec.name);
-                    cb(errMsg1, false);
+                    if (fieldSpec.hasOwnProperty("required") && !fieldSpec.required) {
+                        cb(null, true);
+                    }
+                    else {
+                        this.sh_logger.log('Field Not Defined:', fieldSpec.name);
+                        cb(errMsg1, false);
+                    }
                 }
             }, callback);
         }
     }
     validateFieldsExistence(obj, fieldSpecs, strict) {
-        var self = this;
+        let self = this;
         if (self.isUndefined(strict)) {
             strict = false;
         }
@@ -234,11 +250,11 @@ class Helper {
                     if (fieldSpec.validateArgs.constructor != Array) {
                         fieldSpec.validateArgs = [fieldSpec.validateArgs];
                     }
-                    var valid = fieldSpec.validate.every((validation, i) => {
+                    let valid = fieldSpec.validate.every((validation, i) => {
                         if (fieldSpec.validateArgs[i] && fieldSpec.validateArgs[i].constructor != Array) {
                             fieldSpec.validateArgs[i] = [fieldSpec.validateArgs[i]];
                         }
-                        var validateArgs = fieldSpec.validateArgs[i] || [];
+                        let validateArgs = fieldSpec.validateArgs[i] || [];
                         validateArgs.unshift(obj[fieldSpec.name]);
                         return validation.apply(null, validateArgs);
                     });
@@ -268,18 +284,18 @@ class Helper {
         });
     }
     saltHash(pwd) {
-        var salt = this.sh_chance.string({
+        let salt = this.sh_chance.string({
             length: 16,
             pool: 'abcde1234567890'
         });
         return salt + sh_crypto.createHmac('sha256', salt).update(pwd).digest('hex');
     }
     verifySaltHash(salted, pwd) {
-        var hashed = {
+        let hashed = {
             salt: salted.slice(0, 16),
             hash: salted.slice(16)
         };
-        var thisHash = sh_crypto.createHmac('sha256', hashed.salt).update(pwd).digest('hex');
+        let thisHash = sh_crypto.createHmac('sha256', hashed.salt).update(pwd).digest('hex');
         return (hashed.hash == thisHash);
     }
     handleResult(res, err, result, type) {

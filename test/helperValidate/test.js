@@ -1,44 +1,74 @@
-var chai = require("chai")
-var should = chai.should();
+var should = require("chai").should();
 
-var HelperValidate = require("../../index").HelperValidate
+var {HelperValidate} = require("../../dist/index")
 var helperValidate = new HelperValidate()
 var mongo = require("mongojs")
+
+let moment = require('moment')
 
 describe("Helper Validate", () => {
 
   describe("#range()", () => {
-    it("should validate if the data passed is within the given range")
-    it("should return false if any one of the param is not passed")
+    it("should validate if the data passed is within the given range", () => {
+      helperValidate.range(12, 1, 13).should.be.ok;
+      helperValidate.range(12, 0, 10).should.not.be.ok;
+    })
   })
 
   describe("#length()", () => {
-    it("should validate only for greater than min if max is not passed")
-    it("should return false and print error log if min and max are not passed")
-    it("should validate the length of the array/string for the given range")
+    it("should validate only for greater than min if max is not passed", () => {
+      helperValidate.length("asdf", 3).should.be.ok;
+    })
+    it("should validate the length of the array/string for the given range", () => {
+      helperValidate.length("asdf", 3, 5).should.be.ok;
+      helperValidate.length([1, 2, 3, 4 ], 2, 3).should.not.be.ok;
+    })
   })
 
   describe("#isMongoId()", () => {
-    it("should return true if the given data is a valid mongo id")
-    it("should return false  if the given data is an invalid mongoid")
+    it("should return true if the given data is a valid mongo id", () => {
+      var id = mongo.ObjectId()
+      helperValidate.isMongoId(id).should.be.ok;
+    })
+    it("should return false  if the given data is an invalid mongoid", () => {
+      helperValidate.isMongoId("asdf").should.not.be.ok;
+    })
   })
 
   describe("#in()", () => {
-    it("should validate if the data exists in the given array")
-    it("should return false if not array is passed")
+    it("should validate if the data exists in the given array", () => {
+      var arr = [1, 2, 3, 4, 5]
+      helperValidate.in(2, arr).should.be.ok
+      helperValidate.in(6, arr).should.not.be.ok;
+    })
   })
 
   describe("#isName()", () => {
-    it("should allow only alphabets, numberic and (_-.)")
-    it("should return false if any other special characters are used")
+    it("should allow only alphabets, numberic and (_-.)", () => {
+      var name = "asdfASDF -_.0123"
+      helperValidate.isName(name).should.be.ok
+    })
+    it("should return false if any other special characters are used", () => {
+      var name = "asdfASDF? -_,0123"
+      helperValidate.isName(name).should.not.be.ok
+    })
   })
 
   describe("#isEmail()", () => {
-    it("should validate for email string")
+    it("should validate for email string", () => {
+      helperValidate.isEmail("test.test@in.test.com").should.be.ok
+      helperValidate.isEmail("test@test.org").should.be.ok
+      helperValidate.isEmail("@mail.com").should.not.be.ok
+      helperValidate.isEmail("test@.com").should.not.be.ok;
+      helperValidate.isEmail("test@mail.c").should.not.be.ok;
+    })
   })
 
   describe("#isAlpha()", () => {
-    it("should validate only for alphabets")
+    it("should validate only for alphabets", () => {
+      helperValidate.isAlpha("asdfASD").should.be.ok;
+      helperValidate.isAlpha("asdfASD1324").should.not.be.ok;
+    })
   })
 
   describe("#isNumeric()", () => {
@@ -57,17 +87,27 @@ describe("Helper Validate", () => {
   })
 
   describe("#isAlphaNumeric()", () => {
-    it("should validate for alpha numeric")
-    it("should not validate otherwise")
+    it("should validate only for alpha numeric", () => {
+      helperValidate.isAlphaNumeric("asdfASD").should.be.ok;
+      helperValidate.isAlphaNumeric("asdf").should.be.ok;
+      helperValidate.isAlphaNumeric("asdfASD1234").should.be.ok;
+      helperValidate.isAlphaNumeric("asdfASD1234?").should.not.be.ok;
+    })
   })
 
   describe("#isDate()", () => {
-    it("should validate if the given string is in date format")
-    it("should validate the string against the given date format")
+    it("should validate the string against the given date format", () => {
+      helperValidate.isDate("2017", "YYYY").should.be.ok
+      helperValidate.isDate("2017", "MM-DD").should.not.be.ok
+    })
   })
 
   describe("#isRegex()", () => {
-    it("should validate the string for the given expression")
+    it("should validate the string for the given expression", () => {
+      helperValidate.isRegex("asdfASDF", "[asdf]*[ASDF]*").should.be.ok
+      helperValidate.isRegex("asdfASDF1234", "[asdf]*[ASDF]*").should.be.ok
+      helperValidate.isRegex("asdfASDF1234", "^[asdf]*[ASDF]*$").should.not.be.ok
+    })
   })
 
 })

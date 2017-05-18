@@ -5,7 +5,7 @@ var db = mongojs("sh_test")
 
 var userColl = "users";
 
-var Crud = require('../../index').Crud;
+var Crud = require('../../dist/index').Crud;
 
 var User = {}
 User.create = function(req, res) {
@@ -68,6 +68,10 @@ var port = process.argv[2] || 8000;
 app.use(bodyParser.json());
 
 app.use('/users', UserCrud);
+
+app.use(function(req, res) {
+    res.status(404).send("Not Found")
+})
 
 app.listen(port, function(err){
   if(!err){

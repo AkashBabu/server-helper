@@ -8,7 +8,7 @@ var should = chai.should()
 chai.use(chaiHttp)
 
 var userColl = "users"
-
+ 
 describe("Users", function() {
     beforeEach((done) => {
         db.collection(userColl).remove({}, done)
@@ -19,7 +19,6 @@ describe("Users", function() {
             console.log("Dropped test database");
             done();
         })
-
     })
 
     it("should list ALL users on /users GET", (done) => {
@@ -140,6 +139,15 @@ describe("Users", function() {
                 res.should.have.status(406)
                 res.body.error.should.be.ok
                 res.body.data.should.be.eql("Method Not Allowed")
+                done()
+            })
+    })
+
+    it("should forward a request if handler is not present", (done) => {
+        chai.request(server)
+            .get("/users/get/names")
+            .end((res ) => {
+                res.should.have.status(404)
                 done()
             })
     })

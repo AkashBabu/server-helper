@@ -1,4 +1,6 @@
-var serverHelper = require('../../index');
+/// <reference path="../../dist/types/index.d.ts" />
+
+var serverHelper = require('../../dist/index');
 var Helper = serverHelper.Helper;
 var helper = new Helper(false);
 
@@ -153,13 +155,13 @@ describe('helper', () => {
             }
             var validations = [{
                 name: 'a',
-                type: Number
+                type: 'number'
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: Number
+                type: 'number'
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 err.should.be.ok
@@ -175,10 +177,10 @@ describe('helper', () => {
             }
             var validations = [{
                 name: 'a',
-                type: Number
+                type: 'number'
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 assert.isNull(err)
@@ -190,13 +192,13 @@ describe('helper', () => {
             var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number
+                type: 'number'
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: Number,
+                type: 'number',
                 errMsg: "Invalid Type for C"
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
@@ -209,17 +211,17 @@ describe('helper', () => {
             var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number
+                type: 'number'
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
                 errMsg: "Invalid Type for C"
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
-                assert.isNull(err)
+                should.not.exist(err)
                 done()
             })
         })
@@ -231,18 +233,18 @@ describe('helper', () => {
             var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number,
+                type: 'number',
                 validate: validateFn,
                 validateErrMsg: "A should be greater than 10"
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
-                err.should.be.ok
+                should.exist(err)
                 err.should.be.eql("A should be greater than 10")
                 done()
             })
@@ -260,15 +262,15 @@ describe('helper', () => {
             var obj = { a: 100, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number,
+                type: 'number',
                 validate: [validateFn1, validateFn2],
                 validateErrMsg: ["A should be greater than 10", "A should be less than 30"]
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 err.should.be.ok
@@ -285,16 +287,16 @@ describe('helper', () => {
             var obj = { a: 100, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number,
+                type: 'number',
                 // validate: [validateFn1, validateFn2],
                 // validateErrMsg: ["A should be greater than 10", "A should be less than 30"]
             }, {
                 name: 'b',
-                type: Number,
+                type: 'number',
                 transform: transformFn
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 obj.b.should.be.eql(20)
@@ -313,15 +315,15 @@ describe('helper', () => {
             var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number,
+                type: 'number',
                 validate: validateFn,
                 validateErrMsg: "A should be greater than 10"
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 err.should.be.ok
@@ -348,15 +350,15 @@ describe('helper', () => {
             var obj = { a: 100, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number,
+                type: 'number',
                 validate: [validateFn1, validateFn2],
                 validateErrMsg: ["A should be greater than 10", "A should be less than 30"]
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 err.should.be.ok
@@ -366,26 +368,23 @@ describe('helper', () => {
         })
         it("should apply async transform function", function(done) {
             this.timeout(2000)
-
             function transformFn(d, cb) {
                 setTimeout(function() {
                     cb(null, d * 10)
 
                 }, 50)
             }
-
-
             var obj = { a: 100, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number,
+                type: 'number',
             }, {
                 name: 'b',
-                type: Number,
+                type: 'number',
                 transform: transformFn
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 obj.b.should.be.eql(20)
@@ -396,14 +395,14 @@ describe('helper', () => {
             var obj = { a: "1", b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number,
+                type: 'number',
                 errMsg: "A should only be a number"
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 err.should.be.ok
@@ -418,15 +417,15 @@ describe('helper', () => {
             var obj = { a: 1, b: 2, c: "Hi" }
             var validations = [{
                 name: "a",
-                type: Number,
+                type: 'number',
                 validate: validateFn,
                 errMsg: "A should only be a number"
             }, {
                 name: 'b',
-                type: Number
+                type: 'number'
             }, {
                 name: 'c',
-                type: [Number, String],
+                type: ['number', "string"],
             }]
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 err.should.be.ok
@@ -436,12 +435,10 @@ describe('helper', () => {
         })
         it("should apply different validateArgs for Each validation", (done) => {
             function validateFn1(a, b) {
-                // console.log("args 1:", arguments);
                 return a > b
             }
 
             function validateFn2(a, b) {
-                // console.log("args 2:", arguments);
                 return a > b
             }
 
@@ -450,7 +447,7 @@ describe('helper', () => {
             }
             var validations = [{
                 name: 'a',
-                type: Number,
+                type: 'number',
                 validate: [validateFn1, validateFn2],
                 validateErrMsg: ["A should be greater than 2", 'A should be greater 30'],
                 validateArgs: [2, [30]]
@@ -458,6 +455,31 @@ describe('helper', () => {
             helper.validateFieldsCb(obj, validations, true, (err) => {
                 err.should.be.ok
                 err.should.be.eql("A should be greater 30")
+                done()
+            })
+        })
+        it("should not return error if field is not required and is not present", (done) => {
+            let obj = {
+                a: 1,
+                b: 1
+            }
+
+            let validations = [
+                {
+                    name: "a",
+                    type: 'number'
+                }, {
+                    name: 'b',
+                    type: 'number'
+                }, {
+                    name: 'c',
+                    type: 'number',
+                    required: false
+                }
+            ]
+
+            helper.validateFieldsCb(obj, validations, false, (err) => {
+                should.not.exist(err)
                 done()
             })
         })

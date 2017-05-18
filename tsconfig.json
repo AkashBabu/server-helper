@@ -13,6 +13,7 @@
         "declarationDir": "./dist/types/"
     },
     "files": [
+        "./source/index.ts",
         "./typings/index.d.ts"
     ],
     "include": [
