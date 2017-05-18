@@ -1,6 +1,6 @@
 var chai = require("chai")
 var chaiHttp = require("chai-http")
-var mongojs  = require("mongojs")
+var mongojs = require("mongojs")
 var db = mongojs("sh_test")
 var server = require("./server")
 
@@ -8,7 +8,7 @@ var should = chai.should()
 chai.use(chaiHttp)
 
 var userColl = "users"
- 
+
 describe("Users", function() {
     beforeEach((done) => {
         db.collection(userColl).remove({}, done)
@@ -40,7 +40,7 @@ describe("Users", function() {
             phone: "1234567890"
         }
         db.collection(userColl).insert(user, (err, result) => {
-            if(result) {
+            if (result) {
                 chai.request(server)
                     .get("/users/" + result._id)
                     .end((err, res) => {
@@ -75,7 +75,7 @@ describe("Users", function() {
     })
 
     it("should update a SINGLE user on /user/<id> PUT", (done) => {
-         var user = {
+        var user = {
             name: "Akash",
             email: "001akashbabu@gmail.com",
             phone: "1234567890"
@@ -84,7 +84,7 @@ describe("Users", function() {
             name: "Maneesh"
         }
         db.collection(userColl).insert(user, (err, result) => {
-            if(result) {
+            if (result) {
                 chai.request(server)
                     .put("/users/" + user._id)
                     .send(update)
@@ -105,19 +105,19 @@ describe("Users", function() {
         })
     })
     it("should remove a SINGLE user on /user DELETE", (done) => {
-         var user = {
+        var user = {
             name: "Akash",
             email: "001akashbabu@gmail.com",
             phone: "1234567890"
         }
         db.collection(userColl).insert(user, (err, result) => {
-            if(result) {
+            if (result) {
                 chai.request(server)
                     .delete("/users/" + user._id)
                     .end((err, res) => {
                         res.should.have.status(200)
                         res.body.error.should.not.be.ok
-                        
+
                         db.collection(userColl).find({}, (err, users) => {
                             users.should.be.an("array")
                             users.length.should.be.eql(0)
@@ -136,7 +136,7 @@ describe("Users", function() {
         chai.request(server)
             .options("/users/")
             .end((err, res) => {
-                res.should.have.status(406)
+                res.should.have.status(405)
                 res.body.error.should.be.ok
                 res.body.data.should.be.eql("Method Not Allowed")
                 done()
@@ -146,7 +146,7 @@ describe("Users", function() {
     it("should forward a request if handler is not present", (done) => {
         chai.request(server)
             .get("/users/get/names")
-            .end((res ) => {
+            .end((res) => {
                 res.should.have.status(404)
                 done()
             })

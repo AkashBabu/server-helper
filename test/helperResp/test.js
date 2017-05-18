@@ -100,4 +100,99 @@ describe("HelperResp", () => {
                 })
         })
     })
+
+    describe("#success", function() {
+        it("should respond with http success", () => {
+            request.get("/success")
+                .end((err, res) => {
+                    res.should.have.status(200)
+                    res.body.error.should.not.be.ok;
+                    res.body.data.should.be.an("object")
+                    res.body.data.name.should.be.eql("test")
+
+                    done();
+                })
+        })
+    })
+
+    describe("#failed", function() {
+        it("should respond with http failure", () => {
+            request.get("/failed")
+                .end((err, res) => {
+                    res.should.have.status(400)
+                    res.body.error.should.be.ok;
+                    res.body.data.should.be.a("string")
+                    res.body.data.should.be.eql("Invalid Data")
+
+                    done();
+                })
+        })
+    })
+
+    describe("#post", () => {
+        it("should respond with HTTP created", () => {
+            request.post("/post")
+                .end((err, res) => {
+                    res.should.have.status(201)
+                    res.body.error.should.not.be.ok;
+                    res.body.data.should.be.an("object")
+                    res.body.data.create.should.be.ok;
+
+                    done()
+                })
+        })
+    })
+
+
+    describe("#put", () => {
+        it("should respond with HTTP accepted", () => {
+            request.put("/put")
+                .end((err, res) => {
+                    res.should.have.status(202)
+                    res.body.error.should.not.be.ok;
+                    res.body.data.should.be.an("object")
+                    res.body.data.accepted.should.be.ok;
+
+                    done()
+                })
+        })
+    })
+
+    describe("#delete", () => {
+        it("should respond with HTTP Delete", () => {
+            request.delete("/delete")
+                .end((err, res) => {
+                    res.should.have.status(202)
+                    res.body.error.should.not.be.ok;
+                    res.body.data.should.be.an("object")
+                    res.body.data.remove.should.be.ok;
+
+                    done()
+                })
+        })
+    })
+
+    describe("#get", () => {
+        it("should respond with HTTP List []", () => {
+            request.get("/list")
+                .end((err, res) => {
+                    res.should.have.status(200)
+                    res.body.error.should.not.be.ok;
+                    res.body.data.should.be.an("array")
+
+                    done()
+                })
+        })
+        it("should respond with HTTP get /:id", () => {
+            request.get("/test/testname")
+                .end((err, res) => {
+                    res.should.have.status(200)
+                    res.body.error.should.not.be.ok;
+                    res.body.data.should.be.an("object")
+                    res.body.data.name.should.be.eql("testname")
+
+                    done()
+                })
+        })
+    })
 })
