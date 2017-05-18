@@ -55,5 +55,41 @@ class HelperResp {
             });
         }
     }
+    success(res, data) {
+        res.status(200).send({
+            error: false,
+            data: data || {}
+        });
+    }
+    failed(res, data) {
+        res.status(400).send({
+            error: false,
+            data: data || "Failed"
+        });
+    }
+    post(res, data) {
+        res.status(201).send({
+            error: false,
+            data: data || "CREATED"
+        });
+    }
+    put(res, data) {
+        res.status(202).send({
+            error: false,
+            data: data || "UPDATED"
+        });
+    }
+    delete(res, data) {
+        res.status(202).send({
+            error: false,
+            data: data || "DELETED"
+        });
+    }
+    get(res, data = {}, list = true) {
+        res.status(200).send({
+            error: false,
+            data: data || list ? [] : {}
+        });
+    }
 }
 exports.HelperResp = HelperResp;

@@ -1,5 +1,5 @@
 "use strict";
-const express = require('express');
+const express = require("express");
 class CRUD {
     constructor(crud) {
         let router = express.Router();
@@ -20,7 +20,7 @@ class CRUD {
     }
     methodNotAllowed() {
         return function (req, res) {
-            res.status(406).send({
+            res.status(405).send({
                 error: true,
                 data: "Method Not Allowed"
             });
