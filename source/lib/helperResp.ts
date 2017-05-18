@@ -6,6 +6,12 @@ export interface IHelperResp {
     unauth(res: IHTTPResp, comment?: string): void;
     serverError(res: IHTTPResp, comment?: string): void;
     handleResult(res: IHTTPResp, err: Error, result: any, type?: string): void;
+    success(res: IHTTPResp, data?: any): void;
+    failed(res: IHTTPResp, data?: string): void;
+    post(res: IHTTPResp, data?: any): void;
+    put(res: IHTTPResp, data?: any): void;
+    delete(res: IHTTPResp, data?: any): void;
+    get(res:IHTTPResp, data?: any, list?: boolean): void;
 }
 
 export class HelperResp implements IHelperResp {
@@ -62,5 +68,41 @@ export class HelperResp implements IHelperResp {
                 data: type == 'array' ? [] : {}
             })
         }
+    }
+    success(res: IHTTPResp, data?: any): void{
+        res.status(200).send({
+            error: false,
+            data: data || {}
+        })
+    }
+    failed(res: IHTTPResp, data?: string): void{
+        res.status(400).send({
+            error: false,
+            data: data || "Failed"
+        })
+    }
+    post(res: IHTTPResp, data?: any): void{
+        res.status(201).send({
+            error: false,
+            data: data || "CREATED"
+        })
+    }
+    put(res: IHTTPResp, data?: any): void{
+        res.status(202).send({
+            error: false,
+            data: data || "UPDATED"
+        })
+    }
+    delete(res: IHTTPResp, data?: any): void {
+        res.status(202).send({
+            error: false,
+            data: data || "DELETED"
+        })
+    }
+    get(res:IHTTPResp, data = {}, list = true): void {
+        res.status(200).send({
+            error: false,
+            data: data || list ? [] : {}
+        })
     }
 }
