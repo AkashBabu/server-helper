@@ -10,11 +10,6 @@ class HelperTransform {
         this.sh_chance = new sh_Chance();
         this.sh_logger[debug ? 'activate' : 'deactivate']();
     }
-    /**
-     * Converts the given string to lower case letters
-     * @param {string} data - input string
-     * @return {string} - converted string
-     */
     toLowerCase(data) {
         return data.toLowerCase();
     }

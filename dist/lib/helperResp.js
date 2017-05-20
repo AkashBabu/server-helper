@@ -33,16 +33,22 @@ class HelperResp {
                 });
             }
             else {
-                if (result.constructor == Array && result.length == 0) {
+                if (Array.isArray(result) && result.length == 0) {
                     res.status(204).send({
                         error: false,
                         data: []
                     });
                 }
-                else if (result.constructor == Object && Object.keys(result).length == 0) {
+                else if (typeof result == 'object' && Object.keys(result).length == 0) {
                     res.status(204).send({
                         error: false,
                         data: {}
+                    });
+                }
+                else {
+                    res.status(200).send({
+                        error: false,
+                        data: result
                     });
                 }
             }
