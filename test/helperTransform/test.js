@@ -1,6 +1,6 @@
 var should = require('chai').should();
 var mongo = require('mongojs')
-var {HelperTransform} = require("../../dist/index")
+var { HelperTransform } = require("../../dist/index")
 var helperTransform = new HelperTransform(false);
 
 var moment = require("moment")
@@ -68,7 +68,11 @@ describe("Helper Transform", () => {
         })
     })
 
-    describe("#toSaltHash", () => {})
+    describe("#toSaltHash", () => {
+        it("should anonymize the given string", () => {
+            helperTransform.toSaltHash("pwd").should.not.be.eql("pwd")
+        })
+    })
     describe("#stripXss", () => {
         it("should remove any Html tags in the passed string", () => {
             var template = `present<html>absent</html>`
