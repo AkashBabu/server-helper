@@ -82,7 +82,7 @@ export class HelperResp implements IHelperResp {
     }
     failed(res: IHTTPResp, data?: string): void{
         res.status(400).send({
-            error: false,
+            error: true,
             data: data || "Failed"
         })
     }

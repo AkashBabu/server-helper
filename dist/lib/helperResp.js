@@ -69,7 +69,7 @@ class HelperResp {
     }
     failed(res, data) {
         res.status(400).send({
-            error: false,
+            error: true,
             data: data || "Failed"
         });
     }
