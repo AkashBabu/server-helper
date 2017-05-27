@@ -1,8 +1,8 @@
 "use strict";
 const sh_Chance = require("chance");
 const sh_crypto = require("crypto");
-const sh_Logger = require("logger-switch");
-const sh_async = require("async");
+const sh_Logger = require('logger-switch');
+const sh_async = require('async');
 class Helper {
     constructor(debug) {
         this.sh_logger = new sh_Logger('sh-helper');

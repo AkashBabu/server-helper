@@ -1,13 +1,24 @@
 "use strict";
 const sh_mongo = require("mongojs");
 const sh_async = require("async");
-const sh_Logger = require("logger-switch");
+const sh_Logger = require('logger-switch');
 class HelperMongo {
     constructor(connStr, debug) {
         this.sh_logger = new sh_Logger('sh-mongo');
         this.sh_db = sh_mongo(connStr);
         this.sh_logger[debug ? 'activate' : 'deactivate']();
     }
+    isValidationOnUpdate(data) {
+        return data.length !== undefined;
+    }
+    isValidateObject(data) {
+        return data.length !== undefined;
+    }
+    /**
+     * @description Returns Groupby which can be used in Mongo functions
+     * @param  {string} group_by
+     * @returns string
+     */
     getDateFormat(group_by) {
         let format = "%Y-%m-%d";
         switch (group_by || '') {
@@ -50,12 +61,15 @@ class HelperMongo {
             }
         });
     }
-    validateNonExistence(collName, validate, cb) {
-        if (validate && validate.constructor == Object) {
-            validate = [validate];
+    validateNonExistence(collName, validations, cb) {
+        // if(this.isValidateObject(validations)) {
+        //     validations = [validations];
+        // }
+        if (!Array.isArray(validations)) {
+            validations = [validations];
         }
-        sh_async.everySeries(validate, (condition, cb1) => {
-            this.sh_db.collection(collName).findOne(condition.query || condition, function (err, result) {
+        sh_async.everySeries(validations, (condition, cb1) => {
+            this.sh_db.collection(collName).findOne(condition.query || condition, (err, result) => {
                 if (result) {
                     cb1(condition.errMsg || "Duplicate Document");
                 }
@@ -63,7 +77,7 @@ class HelperMongo {
                     cb1(err, !result);
                 }
             });
-        }, function (err, done) {
+        }, (err, done) => {
             cb(err, done);
         });
     }
@@ -75,6 +89,13 @@ class HelperMongo {
         catch (err) {
             return cb("Invalid Id");
         }
+        // if (this.isValidationOnUpdate(validations)) {
+        //     validations = [validations];
+        // }
+        if (!Array.isArray(validations)) {
+            validations = [validations];
+        }
+        let dbOperations = 0;
         sh_async.autoInject({
             getExistingObj: (cb1) => {
                 this.sh_db.collection(collName).findOne({
@@ -85,6 +106,7 @@ class HelperMongo {
                 if (getExistingObj) {
                     sh_async.each(validations, (field, cb2) => {
                         if (getExistingObj[field.name] != obj[field.name]) {
+                            dbOperations += 1;
                             let mongoQuery = {};
                             mongoQuery[field.name] = obj[field.name];
                             if (field.query) {
@@ -94,7 +116,7 @@ class HelperMongo {
                                 _id: 1
                             }, function (err, result) {
                                 if (result) {
-                                    cb2(field.errMsg ? field.errMsg : "Invalid " + field.name);
+                                    cb2(field.errMsg ? field.errMsg : "Duplicate " + field.name);
                                 }
                                 else {
                                     cb2(err, !result);
@@ -111,7 +133,7 @@ class HelperMongo {
                 }
             }
         }, function (err, results) {
-            cb(err, results.compareWithNewObj);
+            cb(err, dbOperations);
         });
     }
     getById(collName, id, cb) {
@@ -126,23 +148,45 @@ class HelperMongo {
         }, cb);
     }
     getMaxValue(collName, obj, cb) {
-        this.sh_db.collection(collName).aggregate({
-            $match: obj.query || {}
-        }, {
-            $unwind: obj.unwind || '$' + obj.key
-        }, {
-            $group: {
-                _id: null,
-                sno: {
-                    $max: '$' + obj.key
+        /**
+         * Flow
+         * match -> unwind(optional) -> group (To find max)
+         */
+        let group = {
+            _id: null,
+            sno: {
+                $max: '$' + obj.key
+            }
+        };
+        let aggregate = [
+            { $match: obj.query || {} }
+        ];
+        if (obj.unwind) {
+            aggregate.push({
+                '$unwind': obj.unwind[0] == '$' ? obj.unwind : '$' + obj.unwind
+            });
+        }
+        aggregate.push({
+            '$group': group
+        });
+        this.sh_db.collection(collName).aggregate(aggregate, (err, result) => {
+            if (!err) {
+                if (result && result[0]) {
+                    cb(null, result[0].sno);
+                }
+                else {
+                    cb(null, 0);
                 }
             }
-        }, cb);
+            else {
+                cb(err);
+            }
+        });
     }
     getNextSeqNo(collName, obj, cb) {
-        this.getMaxValue(collName, obj, function (err, result) {
+        this.getMaxValue(collName, obj, (err, result) => {
             if (!err) {
-                let sno = result.length ? result[0][obj.key] + 1 : (obj.hasOwnProperty('minValue') ? obj.minValue : 1);
+                let sno = result + 1;
                 if (obj.maxValue && sno > obj.maxValue) {
                     let i = (obj.hasOwnProperty('minValue') ? obj.minValue : 1);
                     let found = false;
@@ -168,9 +212,7 @@ class HelperMongo {
                             cb(err, i);
                         }
                         else {
-                            cb({
-                                code: obj.errMsg || 'Could not Get Next Sequence Number'
-                            }, null);
+                            cb(obj.errMsg || 'Could not Get Next Sequence Number', null);
                         }
                     });
                 }
@@ -205,17 +247,20 @@ class HelperMongo {
             multi: false,
         }, cb);
     }
+    getObj(data) {
+        if (data) {
+            if (typeof data == 'string') {
+                return JSON.parse(data);
+            }
+            return data;
+        }
+        return {};
+    }
     getList(collName, obj, cb) {
         obj = obj || {};
-        if (obj.query && typeof obj.query == 'string') {
-            obj.query = JSON.parse(obj.query || '{}');
-        }
-        if (obj.sort && typeof obj.sort == 'string') {
-            obj.sort = JSON.parse(obj.sort || '{}');
-        }
-        if (obj.project && typeof obj.project == 'string') {
-            obj.project = JSON.parse(obj.project || '{}');
-        }
+        obj.query = this.getObj(obj.query);
+        obj.project = this.getObj(obj.project);
+        obj.sort = this.getObj(obj.sort);
         if (obj.search) {
             let regex = new RegExp('.*' + obj.search + '.*', 'i');
             (obj.query)[obj.searchField || 'name'] = {
@@ -224,7 +269,7 @@ class HelperMongo {
         }
         sh_async.autoInject({
             getCount: (cb) => {
-                this.sh_db.collection(collName).find(obj.query || {}).count(cb);
+                this.sh_db.collection(collName).find(obj.query).count(cb);
             },
             getList: (cb) => {
                 if (obj.recordsPerPage) {
@@ -252,9 +297,11 @@ class HelperMongo {
             id = this.sh_db.ObjectId(id);
         }
         catch (err) {
-            return cb({
-                code: 'Invalid Id'
-            });
+            return cb('Invalid Id');
+        }
+        if (!cb && typeof removeDoc == 'function') {
+            cb = removeDoc;
+            removeDoc = true;
         }
         if (removeDoc) {
             this.sh_db.collection(collName).remove({
@@ -267,7 +314,7 @@ class HelperMongo {
             }, {
                 $set: {
                     isDeleted: true,
-                    delTime: new Date()
+                    deltime: new Date()
                 }
             }, {
                 multi: false,
