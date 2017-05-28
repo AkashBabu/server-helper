@@ -247,10 +247,33 @@ class HelperMongo {
             multi: false,
         }, cb);
     }
-    getObj(data) {
+    getObj(data, sort) {
         if (data) {
             if (typeof data == 'string') {
-                return JSON.parse(data);
+                try {
+                    data = JSON.parse(data);
+                    return data;
+                }
+                catch (err) {
+                    this.sh_logger.error(err);
+                    if (sort == true) {
+                        data = data.replace(/ /g, "");
+                        if (data[0] == '-') {
+                            let val = data.slice(1);
+                            data = {};
+                            data[val] = -1;
+                        }
+                        else {
+                            let val = data;
+                            data = {};
+                            data[val] = 1;
+                        }
+                        return data;
+                    }
+                    else {
+                        return {};
+                    }
+                }
             }
             return data;
         }
@@ -260,7 +283,7 @@ class HelperMongo {
         obj = obj || {};
         obj.query = this.getObj(obj.query);
         obj.project = this.getObj(obj.project);
-        obj.sort = this.getObj(obj.sort);
+        obj.sort = this.getObj(obj.sort, true);
         if (obj.search) {
             let regex = new RegExp('.*' + obj.search + '.*', 'i');
             (obj.query)[obj.searchField || 'name'] = {
