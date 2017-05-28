@@ -146,10 +146,10 @@ export class HelperMongo implements IHelperMongo {
         // if(this.isValidateObject(validations)) {
         //     validations = [validations];
         // }
-        if(!Array.isArray(validations)) {
+        if (!Array.isArray(validations)) {
             validations = [validations]
         }
-        
+
         sh_async.everySeries(
             validations,
             (condition: IValidationObject, cb1) => {
@@ -166,7 +166,7 @@ export class HelperMongo implements IHelperMongo {
             }
         )
     }
-    
+
     validateNonExistenceOnUpdate(collName: string, obj: IMongoDoc, validations: any, cb: Function): void {
         let id;
         try {
@@ -178,7 +178,7 @@ export class HelperMongo implements IHelperMongo {
         // if (this.isValidationOnUpdate(validations)) {
         //     validations = [validations];
         // }
-        if(!Array.isArray(validations)) {
+        if (!Array.isArray(validations)) {
             validations = [validations];
         }
 
@@ -241,16 +241,16 @@ export class HelperMongo implements IHelperMongo {
          */
 
         let group = {
-                    _id: null,
-                    sno: {
-                        $max: '$' + obj.key
-                    }
-                }
+            _id: null,
+            sno: {
+                $max: '$' + obj.key
+            }
+        }
 
         let aggregate: Array<object> = [
-            {$match: obj.query || {}}
+            { $match: obj.query || {} }
         ]
-        if(obj.unwind) { // Use aggregate only when unwind is specified
+        if (obj.unwind) { // Use aggregate only when unwind is specified
             aggregate.push({
                 '$unwind': obj.unwind[0] == '$' ? obj.unwind : '$' + obj.unwind
             })
@@ -259,8 +259,8 @@ export class HelperMongo implements IHelperMongo {
             '$group': group
         })
         this.sh_db.collection(collName).aggregate(aggregate, (err, result) => {
-            if(!err) {
-                if(result && result[0]) {
+            if (!err) {
+                if (result && result[0]) {
                     cb(null, result[0].sno);
                 } else {
                     cb(null, 0);
@@ -333,20 +333,40 @@ export class HelperMongo implements IHelperMongo {
                 multi: false,
             }, cb);
     }
-    private getObj(data: string | object): object {
-        if(data){
-            if(typeof data == 'string') {
-                return JSON.parse(data);
-            } 
+    private getObj(data: string | object, sort?: boolean): object {
+        if (data) {
+            if (typeof data == 'string') {
+                try {
+                    data = JSON.parse(data);
+                    return <object>data;
+                } catch (err) {
+                    this.sh_logger.error(err);
+                    if (sort == true) {
+                        data = data.replace(/ /g, "");
+                        if (data[0] == '-') {
+                            let val = data.slice(1);
+                            data = {};
+                            data[val] = -1;
+                        } else {
+                            let val = data
+                            data = {};
+                            data[val] = 1;
+                        }
+                        return data;
+                    } else {
+                        return {};
+                    }
+                }
+            }
             return data;
-        } 
+        }
         return {}
     }
     getList(collName: string, obj: IGetList, cb: Function): void {
         obj = obj || {};
         obj.query = this.getObj(obj.query);
         obj.project = this.getObj(obj.project);
-        obj.sort = this.getObj(obj.sort);
+        obj.sort = this.getObj(obj.sort, true);
 
         if (obj.search) {
             let regex = new RegExp('.*' + obj.search + '.*', 'i');
@@ -388,10 +408,10 @@ export class HelperMongo implements IHelperMongo {
             return cb('Invalid Id');
         }
 
-        if(!cb && typeof removeDoc == 'function') {
+        if (!cb && typeof removeDoc == 'function') {
             cb = removeDoc;
             removeDoc = true;
-        }        
+        }
 
         if (removeDoc) {
             this.sh_db.collection(collName).remove({
