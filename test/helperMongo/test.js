@@ -1064,6 +1064,38 @@ describe("HelperMongo", () => {
                 }
             })
         })
+        it("should sort the document even if the format is 'name'/'-name'", (done) => {
+            var data = [
+                {
+                    name: 'test1'
+                }, {
+                    name: 'test2'
+                }, {
+                    name: 'test3'
+                }
+            ]
+            db.collection('getList8').insert(data, (err, result) => {
+                if(!err) {
+                    helperMongo.getList("getList8", {
+                        project: {name: 1, _id: 0},
+                        sort: '-name'
+                    }, (err, result1) => {
+                        should.not.exist(err);
+                        result1.should.be.an("object");
+                        result1.count.should.be.eql(3);
+                        result1.list.length.should.be.eql(3);
+                        result1.list[0].name.should.be.eql("test3")
+                        result1.list[1].name.should.be.eql("test2")
+                        result1.list[2].name.should.be.eql("test1")
+
+                        done();
+                    })
+                } else {
+                    console.error('Failed to insert into getList8');
+                    done(err);
+                }
+            })
+        })
     })
 
     describe("#remove()", () => {
