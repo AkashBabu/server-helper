@@ -16,9 +16,6 @@
         "./source/index.ts",
         "./typings/index.d.ts"
     ],
-    // "include": [
-    //     "source/**/*.ts"
-    // ],
     "exclude": [
         "node_modules/",
         "examples/"
