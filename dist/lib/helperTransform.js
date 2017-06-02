@@ -3,7 +3,7 @@ const sh_mongo = require("mongojs");
 const sh_Chance = require("chance");
 const sh_crypto = require("crypto");
 const moment = require("moment");
-const sh_Logger = require("logger-switch");
+const sh_Logger = require('logger-switch');
 class HelperTransform {
     constructor(debug) {
         this.sh_logger = new sh_Logger("sh-transform");

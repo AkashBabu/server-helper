@@ -120,7 +120,7 @@ describe("HelperResp", () => {
             request.get("/failed")
                 .end((err, res) => {
                     res.should.have.status(400)
-                    res.body.error.should.not.be.ok;
+                    res.body.error.should.be.ok;
                     res.body.data.should.be.a("string")
                     res.body.data.should.be.eql("Invalid Data")
 
