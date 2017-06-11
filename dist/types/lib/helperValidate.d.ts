@@ -12,7 +12,7 @@ export interface IHelperValidate {
     isRegex(data: string, regexStr: string): boolean;
 }
 export declare class HelperValidate implements IHelperValidate {
-    sh_logger: any;
+    private logger;
     constructor(debug: boolean);
     range(data: number, min: number, max: number): boolean;
     length(data: string, min: number, max?: number): boolean;

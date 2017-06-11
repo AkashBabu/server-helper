@@ -1,14 +1,15 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const sh_mongo = require("mongojs");
 const sh_Chance = require("chance");
 const sh_crypto = require("crypto");
 const moment = require("moment");
-const sh_Logger = require('logger-switch');
+const sh_Logger = require("logger-switch");
 class HelperTransform {
     constructor(debug) {
-        this.sh_logger = new sh_Logger("sh-transform");
-        this.sh_chance = new sh_Chance();
-        this.sh_logger[debug ? 'activate' : 'deactivate']();
+        this.logger = new sh_Logger("sh-transform");
+        this.chance = new sh_Chance();
+        this.logger[debug ? "activate" : "deactivate"]();
     }
     toLowerCase(data) {
         return data.toLowerCase();
@@ -21,7 +22,7 @@ class HelperTransform {
             return sh_mongo.ObjectId(id);
         }
         catch (err) {
-            this.sh_logger.error(err);
+            this.logger.error(err);
             return null;
         }
     }
@@ -33,7 +34,7 @@ class HelperTransform {
             return moment(dateStr);
         }
         catch (err) {
-            this.sh_logger.error(err);
+            this.logger.error(err);
             return null;
         }
     }
@@ -44,18 +45,19 @@ class HelperTransform {
         return parseFloat(parseFloat(data).toFixed(dec || 5));
     }
     toSaltHash(pwd) {
-        var salt = this.sh_chance.string({
+        let salt = this.chance.string({
             length: 16,
-            pool: 'abcde1234567890'
+            pool: "abcde1234567890"
         });
-        var salted = salt + sh_crypto.createHmac('sha256', salt).update(pwd).digest('hex');
+        let salted = salt + sh_crypto.createHmac("sha256", salt).update(pwd).digest("hex");
         return salted;
     }
     stripXss(str) {
-        if (str.constructor == String)
+        if (typeof str == "string") {
             return str.replace(/(<.*>(.*)<\/?.*>)/, "");
+        }
         else {
-            this.sh_logger.error("Invalid Type for stripXss");
+            this.logger.error("Invalid Type for stripXss");
             return "";
         }
     }

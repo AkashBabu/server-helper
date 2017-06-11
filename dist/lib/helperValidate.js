@@ -1,11 +1,12 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const sh_mongo = require("mongojs");
 const sh_moment = require("moment");
 const sh_Logger = require("logger-switch");
 class HelperValidate {
     constructor(debug) {
-        this.sh_logger = new sh_Logger('sh-validate');
-        this.sh_logger[debug ? 'activate' : "deactivate"]();
+        this.logger = new sh_Logger("sh-validate");
+        this.logger[debug ? "activate" : "deactivate"]();
     }
     range(data, min, max) {
         if (data >= min && data <= max) {

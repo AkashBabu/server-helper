@@ -18,17 +18,17 @@ export interface IHelperValidate {
 }
 
 export class HelperValidate implements IHelperValidate {
-    sh_logger = new sh_Logger('sh-validate');
+    private logger = new sh_Logger("sh-validate");
     constructor(debug: boolean) {
-        this.sh_logger[debug ? 'activate' : "deactivate"]();
+        this.logger[debug ? "activate" : "deactivate"]();
     }
-    range(data: number, min: number, max: number): boolean {
+    public range(data: number, min: number, max: number): boolean {
         if (data >= min && data <= max) {
             return true;
         }
         return false;
     }
-    length(data: string, min: number, max?: number): boolean {
+    public length(data: string, min: number, max?: number): boolean {
         let len = data.length;
         if (max) {
             if (len >= min && len <= max) {
@@ -39,7 +39,7 @@ export class HelperValidate implements IHelperValidate {
             return len >= min;
         }
     }
-    isMongoId(id: string): boolean {
+    public isMongoId(id: string): boolean {
         try {
             sh_mongo.ObjectId(id);
             return true;
@@ -47,28 +47,28 @@ export class HelperValidate implements IHelperValidate {
             return false;
         }
     }
-    in(data: any, arr: any[]): boolean {
+    public in(data: any, arr: any[]): boolean {
         return (arr.indexOf(data) != -1);
     }
-    isName(name: string): boolean {
+    public isName(name: string): boolean {
         return /^([a-zA-Z0-9]|[-_ ]|\.)+$/.test(name);
     }
-    isEmail(email: string): boolean {
+    public isEmail(email: string): boolean {
         return /^([a-zA-Z0-9._%+-])+@[a-zA-Z.-]+\.[a-zA-Z]{2,}$/.test(email);
     }
-    isAlpha(data: string): boolean {
+    public isAlpha(data: string): boolean {
         return /^[a-zA-Z ]+$/.test(data);
     }
-    isNumeric(data: string): boolean {
+    public isNumeric(data: string): boolean {
         return /^[0-9.]+$/.test(data);
     }
-    isAlphaNumeric(data: string): boolean {
+    public isAlphaNumeric(data: string): boolean {
         return /^[a-zA-Z0-9]+$/.test(data);
     }
-    isDate(dateStr: string, format: string): boolean {
+    public isDate(dateStr: string, format: string): boolean {
         return sh_moment(dateStr, format)._isValid;
     }
-    isRegex(data: string, regexStr: string): boolean {
+    public isRegex(data: string, regexStr: string): boolean {
         let regex = new RegExp(regexStr);
         return regex.test(data);
     }

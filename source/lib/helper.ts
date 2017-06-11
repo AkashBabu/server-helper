@@ -1,8 +1,8 @@
 import * as sh_Chance from "chance";
 import * as sh_crypto from "crypto";
 
-import * as sh_Logger from 'logger-switch';
-import * as sh_async from 'async';
+import * as sh_Logger from "logger-switch";
+import * as sh_async from "async";
 
 export interface IHTTPResp {
     status: (code: number) => { send: (data: any) => void };
@@ -21,7 +21,6 @@ export interface IFieldSpec {
 }
 
 export interface IHelper {
-    isUndefined(data: any): boolean;
     filterObj(obj: object, filter: string[]): object;
     weakPwd(pwd: string, config: object): string;
     prefixToQueryObject(prefix: string, obj: object): object;
@@ -35,18 +34,16 @@ export interface IHelper {
 }
 
 export class Helper implements IHelper {
-    sh_logger = new sh_Logger('sh-helper');
-    sh_chance = new sh_Chance();
+    private logger = new sh_Logger("sh-helper");
+    private chance = new sh_Chance();
+    public validateFieldsCb = this.validateFieldsExistenceCb;
     constructor(debug: boolean) {
-        this.sh_logger[debug ? 'activate' : 'deactivate']();
+        this.logger[debug ? "activate" : "deactivate"]();
     }
 
-    isUndefined(data: any): boolean {
-        return data == undefined || data == null
-    }
 
-    filterObj(obj: object, filter: string[]): object {
-        Object.keys(obj).forEach(key => {
+    public filterObj(obj: object, filter: string[]): object {
+        Object.keys(obj).forEach((key) => {
             if (filter.indexOf(key) == -1) {
                 delete obj[key];
             }
@@ -55,24 +52,26 @@ export class Helper implements IHelper {
         return obj;
     }
 
-    weakPwd(pwd: string, config: object): string {
+    public weakPwd(pwd: string, config: object): string {
         let error: any;
         pwd = pwd || "";
 
-        Object.keys(config).forEach(key => {
+        Object.keys(config).forEach((key) => {
             switch (key) {
                 case "minLen":
                     return (pwd.length >= config[key] ? true : !(error = "Please choose a password length of atleast " + config[key] + " characters"))
                 case "maxLen":
                     return (pwd.length <= config[key] ? true : !(error = "Please choose a password length of atmost " + config[key] + " characters"))
                 case "upperCase":
-                    return (/[A-Z]/.test(pwd) ? true : !(error = 'Password must include atleast one upper case letter'))
+                    return (/[A-Z]/.test(pwd) ? true : !(error = "Password must include atleast one upper case letter"))
                 case "lowerCase":
                     return (/[a-z]/.test(pwd) ? true : !(error = "Password must include atleast one lower case letter"))
                 case "numbers":
                     return (/[0-9]/.test(pwd) ? true : !(error = "Password must include ateast one Number"))
                 case "specialChars":
-                    return config[key].some(char => (pwd.indexOf(char) != -1)) ? true : !(error = "Password must include atleast one special charater from (" + config[key].join(", ") + ")")
+                    return config[key].some((char) => (pwd.indexOf(char) != -1)) ? true : !(error = "Password must include atleast one special charater from (" + config[key].join(", ") + ")")
+                default:
+                    return;
             }
         })
 
@@ -80,7 +79,7 @@ export class Helper implements IHelper {
     }
 
 
-    prefixToQueryObject(prefix: string, obj: object): object {
+    public prefixToQueryObject(prefix: string, obj: object): object {
         let query = {};
         Object.keys(obj).forEach((key: string) => {
             query[prefix + key] = obj[key];
@@ -88,7 +87,7 @@ export class Helper implements IHelper {
         return query;
     }
 
-    validateFieldNamesExistence(obj: object, fieldNames: string[], strict: boolean): boolean {
+    public validateFieldNamesExistence(obj: object, fieldNames: string[], strict: boolean): boolean {
         if (strict && (Object.keys(obj).length != fieldNames.length)) {
             return false;
         }
@@ -98,7 +97,7 @@ export class Helper implements IHelper {
         })
     }
 
-    validateFieldsExistenceCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: Function): void {
+    public validateFieldsExistenceCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: Function): void {
         let cbCalled = false
         if (strict == true) {
             if (Object.keys(obj).length < fieldSpecs.length) {
@@ -121,36 +120,38 @@ export class Helper implements IHelper {
 
                         if (Array.isArray(fieldSpec.type)) {
                             let validType: boolean = false;
-                            if (fieldSpec.type.indexOf('array') > -1) {
+                            if (fieldSpec.type.indexOf("array") > -1) {
                                 validType = Array.isArray(obj[fieldSpec.name])
                             }
                             if (!validType && fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) == -1) {
-                                this.sh_logger.log('Invalid Type:', fieldSpec.name);
+                                this.logger.log("Invalid Type:", fieldSpec.name);
                                 return cb(errMsg1, false);
                             }
 
                         } else {
                             let validType: boolean = false;
-                            if (fieldSpec.type == 'array') {
+                            if (fieldSpec.type == "array") {
                                 validType = Array.isArray(obj[fieldSpec.name])
                             } else {
                                 validType = fieldSpec.type == typeof obj[fieldSpec.name]
                             }
 
-                            if(!validType) {
-                                this.sh_logger.log('Invalid Type:', fieldSpec.name);
+                            if (!validType) {
+                                this.logger.log("Invalid Type:", fieldSpec.name);
                                 return cb(errMsg1, false);
                             }
                         }
 
-                        !fieldSpec.validateArgs && (fieldSpec.validateArgs = [])
+                        if (!fieldSpec.validateArgs) {
+                            fieldSpec.validateArgs = [];
+                        }
                         if (fieldSpec.validateArgs.constructor != Array) {
                             fieldSpec.validateArgs = [fieldSpec.validateArgs];
                         }
                         if (!fieldSpec.validate) {
                             fieldSpec.validate = [];
                         }
-                        if (typeof fieldSpec.validate == 'function') {
+                        if (typeof fieldSpec.validate == "function") {
                             fieldSpec.validate = [fieldSpec.validate];
                         }
 
@@ -181,15 +182,15 @@ export class Helper implements IHelper {
 
                                 if (validate.length > argsLen) {
                                     let self = this;
-                                    function callback(err, result) { 
+                                    function callback(err, result) {
                                         if (err) {
-                                            self.sh_logger.log("Validation Failed:", this.name)
+                                            self.logger.log("Validation Failed:", this.name)
                                             cb1(err, false);
                                         } else {
                                             if (result) {
                                                 cb1(null, true);
                                             } else {
-                                                self.sh_logger.log("Validation Failed:", this.name)
+                                                self.logger.log("Validation Failed:", this.name)
                                                 cb1(errMsg, false);
                                             }
                                         }
@@ -200,7 +201,7 @@ export class Helper implements IHelper {
 
                                 } else {
                                     if (!validate.apply(null, validateArgs)) {
-                                        this.sh_logger.log('Validation Failed:', fieldSpec.name);
+                                        this.logger.log("Validation Failed:", fieldSpec.name);
                                         cb1(errMsg, false);
                                     } else {
                                         cb1(null, true);
@@ -222,16 +223,16 @@ export class Helper implements IHelper {
 
                                         if (fieldSpec.transform.length > argsLen) {
                                             let self = this;
-                                            function callback(err, result) {
-                                                if (err) {
-                                                    self.sh_logger("Transform Failed:", this.name)
-                                                    cb(err, false);
+                                            function callback(err1, result1) {
+                                                if (err1) {
+                                                    self.logger("Transform Failed:", this.name)
+                                                    cb(err1, false);
                                                 } else {
-                                                    if (result != undefined || result != null) {
-                                                        obj[fieldSpec.name] = result;
+                                                    if (result1 != undefined || result1 != null) {
+                                                        obj[fieldSpec.name] = result1;
                                                         cb(null, true);
                                                     } else {
-                                                        self.sh_logger("Transform Failed:", this.name)
+                                                        self.logger("Transform Failed:", this.name)
                                                         cb(errMsg1, false);
                                                     }
                                                 }
@@ -256,22 +257,21 @@ export class Helper implements IHelper {
                         if (fieldSpec.hasOwnProperty("required") && !fieldSpec.required) {
                             cb(null, true);
                         } else {
-                            this.sh_logger.log('Field Not Defined:', fieldSpec.name);
+                            this.logger.log("Field Not Defined:", fieldSpec.name);
                             cb(errMsg1, false);
                         }
                     }
                 }, callback)
         }
     }
-    validateFieldsCb = this.validateFieldsExistenceCb;
-    validateFieldsExistence(obj: object, fieldSpecs: IFieldSpec[], strict: boolean): boolean {
+    public validateFieldsExistence(obj: object, fieldSpecs: IFieldSpec[], strict: boolean): boolean {
         let self = this;
         if (self.isUndefined(strict)) {
             strict = false;
         }
         if (strict) {
             if (Object.keys(obj).length < fieldSpecs.length) {
-                self.sh_logger.log("Missing Fields")
+                self.logger.log("Missing Fields")
                 return false;
             } else if (Object.keys(obj).length > fieldSpecs.length) {
                 self.filterObj(obj, fieldSpecs.map((spec: IFieldSpec) => spec.name));
@@ -284,11 +284,11 @@ export class Helper implements IHelper {
                 if (fieldSpec.type) {
                     if (fieldSpec.type.constructor == Array) {
                         if (fieldSpec.type.indexOf(obj[fieldSpec.name].constructor) == -1) {
-                            self.sh_logger.log('Invalid Type:', fieldSpec.name, ", required to be:", fieldSpec.type);
+                            self.logger.log("Invalid Type:", fieldSpec.name, ", required to be:", fieldSpec.type);
                             return false;
                         }
                     } else if (obj[fieldSpec.name].constructor != fieldSpec.type) {
-                        self.sh_logger.log('Invalid Type:', fieldSpec.name, ", required to be:", fieldSpec.type);
+                        self.logger.log("Invalid Type:", fieldSpec.name, ", required to be:", fieldSpec.type);
                         return false;
                     }
                 }
@@ -315,7 +315,7 @@ export class Helper implements IHelper {
                     })
 
                     if (!valid) {
-                        self.sh_logger.log("Validation Failed:", fieldSpec.name)
+                        self.logger.log("Validation Failed:", fieldSpec.name)
                         return false;
                     }
 
@@ -336,30 +336,30 @@ export class Helper implements IHelper {
                 return true;
 
             } else {
-                self.sh_logger.log('Field Not Defined:', fieldSpec.name);
+                self.logger.log("Field Not Defined:", fieldSpec.name);
                 return false;
             }
         })
     }
-    saltHash(pwd: string): string {
-        let salt = this.sh_chance.string({
+    public saltHash(pwd: string): string {
+        let salt = this.chance.string({
             length: 16,
-            pool: 'abcde1234567890'
+            pool: "abcde1234567890"
         });
-        return salt + sh_crypto.createHmac('sha256', salt).update(pwd).digest('hex')
+        return salt + sh_crypto.createHmac("sha256", salt).update(pwd).digest("hex")
     }
-    verifySaltHash(salted: string, pwd: string): boolean {
+    public verifySaltHash(salted: string, pwd: string): boolean {
         let hashed = {
             salt: salted.slice(0, 16),
             hash: salted.slice(16)
         }
 
-        let thisHash = sh_crypto.createHmac('sha256', hashed.salt).update(pwd).digest('hex');
+        let thisHash = sh_crypto.createHmac("sha256", hashed.salt).update(pwd).digest("hex");
         return (hashed.hash == thisHash);
     }
-    handleResult(res: IHTTPResp, err: Error, result: any, type?: string): void {
+    public handleResult(res: IHTTPResp, err: Error, result: any, type?: string): void {
         if (!type) {
-            type = 'array'
+            type = "array"
         }
         type = type.toLowerCase();
 
@@ -367,7 +367,7 @@ export class Helper implements IHelper {
             if (this.isUndefined(result)) {
                 res.status(204).send({
                     error: false,
-                    data: type == 'array' ? [] : {}
+                    data: type == "array" ? [] : {}
                 })
             } else {
                 if (Array.isArray(result) && result.length == 0) {
@@ -375,7 +375,7 @@ export class Helper implements IHelper {
                         error: false,
                         data: []
                     })
-                } else if (typeof result == 'object' && Object.keys(result).length == 0) {
+                } else if (typeof result == "object" && Object.keys(result).length == 0) {
                     res.status(204).send({
                         error: false,
                         data: {}
@@ -389,13 +389,16 @@ export class Helper implements IHelper {
             }
 
         } else {
-            this.sh_logger.error("Handle Result Error:", err)
+            this.logger.error("Handle Result Error:", err)
 
             res.status(500).send({
                 error: true,
-                data: type == 'array' ? [] : {}
+                data: type == "array" ? [] : {}
             })
         }
+    }
+    private isUndefined(data: any): boolean {
+        return data == undefined || data == null
     }
 
 }

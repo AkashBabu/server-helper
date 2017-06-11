@@ -19,7 +19,8 @@
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
     "express": "^4.14.0",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "morgan": "^1.8.2"
   },
   "dist": {
     "shasum": "ca7a3a1c079bb2a5c8f276cbe68938ce42683c46",
