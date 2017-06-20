@@ -1,3 +1,77 @@
 {
-    "extends": "tslint:latest"
+    // "extends": "tslint:latest",
+    "rules": {
+        "adjacent-overload-signatures": true,
+        "arrow-parens": true,
+        "member-access": [
+            true,
+            "check-accessor"
+        ],
+        "member-ordering": [
+            true,
+            {
+                "order": [
+                    "static-field",
+                    "instance-field",
+                    "constructor",
+                    "public-instance-method",
+                    "protected-instance-method",
+                    "private-instance-method"
+                ]
+            }
+        ],
+        "no-empty-interface": true,
+        "no-import-side-effect": [true, {"ignore-module": "(\\.html|\\.css)$"}],
+        "curly": true,
+        "no-arg": true,
+        "no-conditional-assignment": true,
+        "no-console": [
+            true,
+            "log",
+            "warn",
+            "error",
+            "info",
+            "debug"
+        ],
+        "no-duplicate-super": true,
+        "no-empty": true,
+        "no-invalid-this": true,
+        "no-shadowed-variable": true,
+        "no-sparse-arrays": true,
+        "no-unused-expression": true,
+        "no-unused-variable": true,
+        "no-var-keyword": true,
+        "no-use-before-declare": true,
+        "strict-type-predicates": true,
+        "switch-default": true,
+        "semicolon": [
+            false,
+            "never"
+        ],  
+        "deprecation": true,
+        "cyclomatic-complexity": [
+            true, 20
+        ],
+        "eofline": false,
+        "indent": [
+            true
+        ],
+        "object-literal-sort-keys": false,
+        "class-name": true,
+        "interface-name": [
+            true,
+            "always-prefix"
+        ],
+        "no-trailing-whitespace": false,
+        "quotemark": [
+            true,
+            "double",
+            "single"
+        ],
+        "variable-name": [
+            true,
+            "allow-pascal-case",
+            "check-format"
+        ]
+    }
 }

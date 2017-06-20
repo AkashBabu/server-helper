@@ -73,11 +73,11 @@ app.use(function(req, res) {
     res.status(404).send("Not Found")
 })
 
-app.listen(port, function(err) {
-    if (!err) {
-        console.log('Server listening on port :', port);
-    }
-})
+// app.listen(port, function(err) {
+//     if (!err) {
+//         console.log('Server listening on port :', port);
+//     }
+// })
 
 
 module.exports = app

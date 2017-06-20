@@ -8,9 +8,14 @@
   "dependencies": {
     "async": "^2.1.2",
     "chance": "^1.0.4",
+    "connect-redis": "^3.3.0",
+    "express-session": "^1.14.2",
+    "jwt-simple": "^0.5.1",
     "logger-switch": "^2.0.0",
     "moment": "^2.18.1",
     "mongojs": "^2.4.0",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
     "string": "^3.3.3"
   },
   "description": "A Nodejs Lib for easy development on server-side scripting",
@@ -19,7 +24,8 @@
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
     "express": "^4.14.0",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "morgan": "^1.8.2"
   },
   "dist": {
     "shasum": "ca7a3a1c079bb2a5c8f276cbe68938ce42683c46",
@@ -52,5 +58,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.10.3"
+  "version": "0.11.0"
 }

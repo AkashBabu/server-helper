@@ -1,4 +1,4 @@
-import * as express from 'express'
+import * as express from "express"
 
 export interface IHTTPResp {
     status(code: number): { send(data: any): void }
@@ -17,25 +17,25 @@ export interface ICRUD {
 }
 
 export class CRUD {
+    public router;
     constructor(crud: ICRUD) {
-        let router = express.Router()
-        router.route("/")
+        this.router = express.Router({mergeParams: true})
+        this.router.route("/")
             .get(crud.list || this.next)
             .post(crud.create || this.next)
-            .all(this.methodNotAllowed())
+            // .all(this.methodNotAllowed())
 
-        router.route("/:id")
+        this.router.route("/:id")
             .get(crud.get || this.next)
             .put(crud.update || this.next)
             .delete(crud.remove || this.next)
-            .all(this.methodNotAllowed())
+            // .all(this.methodNotAllowed())
 
-        return router;
+        return this.router;
     }
 
 
     private next(req, res, next) {
-        console.log('Hit Next');
         next();
     }
     private methodNotAllowed(): IRestHandler {

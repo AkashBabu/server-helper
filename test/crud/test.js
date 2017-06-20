@@ -132,16 +132,16 @@ describe("Users", function() {
         })
     })
 
-    it("should return method not allowed error for any other methods", (done) => {
-        chai.request(server)
-            .options("/users/")
-            .end((err, res) => {
-                res.should.have.status(405)
-                res.body.error.should.be.ok
-                res.body.data.should.be.eql("Method Not Allowed")
-                done()
-            })
-    })
+    // it("should return method not allowed error for any other methods", (done) => {
+    //     chai.request(server)
+    //         .options("/users/")
+    //         .end((err, res) => {
+    //             res.should.have.status(405)
+    //             res.body.error.should.be.ok
+    //             res.body.data.should.be.eql("Method Not Allowed")
+    //             done()
+    //         })
+    // })
 
     it("should forward a request if handler is not present", (done) => {
         chai.request(server)

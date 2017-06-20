@@ -2,7 +2,7 @@ var express = require('express')
 var app = express();
 
 var { HelperResp } = require("../../dist/index")
-var helperResp = new HelperResp(false);
+var helperResp = new HelperResp(true);
 
 app.get("/unauth", (req, res) => {
     helperResp.unauth(res, req.query.comments)
@@ -14,12 +14,17 @@ app.get("/serverError", (req, res) => {
 
 app.get("/handleResult", (req, res) => {
     setTimeout(function() {
-        helperResp.handleResult(res, null, req.query)
+        helperResp.handleResult(res, null, Object.keys(req.query).length ? req.query : null)
+    }, 100)
+})
+app.get("/handleResult/error", (req, res) => {
+    setTimeout(() => {
+        helperResp.handleResult(res, "Test Error");
     }, 100)
 })
 app.get("/handleResult/:type", (req, res) => {
     setTimeout(function() {
-        helperResp.handleResult(res, null, req.query, req.params.type)
+        helperResp.handleResult(res, null, Object.keys(req.query).length ? req.query : null, req.params.type)
     }, 100)
 })
 
@@ -49,12 +54,8 @@ app.get("/list", function(req, res) {
     helperResp.get(res, null, true)
 })
 
-app.get("/test/:name", function(req, res) {
+app.get("/get/:name", function(req, res) {
     helperResp.get(res, req.params, false)
-})
-
-app.listen(57832, (err) => {
-    if (err) console.log(err);
 })
 
 module.exports = app;

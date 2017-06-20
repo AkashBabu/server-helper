@@ -2,16 +2,14 @@
 const sh_Logger = require("logger-switch");
 class HelperResp {
     constructor(debug) {
-        this.sh_logger = new sh_Logger('sh-resp');
-        this.sh_logger[debug ? 'activate' : "deactivate"]();
-    }
-    isUndefined(data) {
-        return data == undefined || data == null;
+        this.logger = new sh_Logger("sh-resp");
+        this.logger[debug ? "activate" : "deactivate"]();
+        return this;
     }
     unauth(res, comment) {
         res.status(401).send({
             error: true,
-            data: comment || 'UNAUTHORIZED ACCESS'
+            data: comment || "UNAUTHORIZED ACCESS"
         });
     }
     serverError(res, comment) {
@@ -20,44 +18,19 @@ class HelperResp {
             data: comment || "INTERNAL SERVER ERROR"
         });
     }
-    handleResult(res, err, result, type) {
-        if (!type) {
-            type = 'array';
-        }
+    handleResult(res, err, result, type = "array") {
         type = type.toLowerCase();
         if (!err) {
-            if (this.isUndefined(result)) {
-                res.status(204).send({
-                    error: false,
-                    data: type == 'array' ? [] : {}
-                });
-            }
-            else {
-                if (Array.isArray(result) && result.length == 0) {
-                    res.status(204).send({
-                        error: false,
-                        data: []
-                    });
-                }
-                else if (typeof result == 'object' && Object.keys(result).length == 0) {
-                    res.status(204).send({
-                        error: false,
-                        data: {}
-                    });
-                }
-                else {
-                    res.status(200).send({
-                        error: false,
-                        data: result
-                    });
-                }
-            }
+            res.status(200).send({
+                error: false,
+                data: this.isUndefined(result) ? (type == "array" ? [] : {}) : result
+            });
         }
         else {
-            this.sh_logger.error("Handle Result Error:", err);
+            this.logger.error("HELPER_RESP HandleResult Err:", err);
             res.status(500).send({
                 error: true,
-                data: type == 'array' ? [] : {}
+                data: type == "array" ? [] : {}
             });
         }
     }
@@ -91,11 +64,14 @@ class HelperResp {
             data: data || "DELETED"
         });
     }
-    get(res, data = {}, list = true) {
+    get(res, data, list = true) {
         res.status(200).send({
             error: false,
-            data: data || list ? [] : {}
+            data: this.isUndefined(data) ? (list ? { count: 0, list: [] } : {}) : data
         });
+    }
+    isUndefined(data) {
+        return data == undefined || data == null;
     }
 }
 exports.HelperResp = HelperResp;

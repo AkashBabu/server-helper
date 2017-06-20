@@ -11,7 +11,6 @@ describe("HelperResp", () => {
             request.get("/unauth")
                 .end((err, res) => {
                     res.should.have.status(401)
-                    console.log('res.body:', res.body);
                     res.body.error.should.be.ok
                     res.body.data.should.be.eql("UNAUTHORIZED ACCESS")
 
@@ -54,10 +53,10 @@ describe("HelperResp", () => {
     })
 
     describe("#handleResult", () => {
-        it("should respond with 204 NO CONTENT when there  is no content", () => {
+        it("should respond with 200 [] when there  is no content", (done) => {
             request.get("/handleResult")
                 .end((err, res) => {
-                    res.should.have.status(204)
+                    res.should.have.status(200)
                     res.body.error.should.not.be.ok
                     res.body.data.should.be.an('array')
                     res.body.data.length.should.be.eql(0)
@@ -65,7 +64,7 @@ describe("HelperResp", () => {
                     done()
                 })
         })
-        it("should respond with 200 If there is content", () => {
+        it("should respond with 200 {} If there is content", (done) => {
             request.get("/handleResult?name=test&age=21")
                 .end((err, res) => {
                     res.should.have.status(200)
@@ -77,10 +76,10 @@ describe("HelperResp", () => {
                     done()
                 })
         })
-        it("should respond with 204 NO CONTENT with data in response as array", () => {
+        it("should respond with 200 with data in response as array", (done) => {
             request.get("/handleResult/array")
                 .end((err, res) => {
-                    res.should.have.status(204)
+                    res.should.have.status(200)
                     res.body.error.should.not.be.ok
                     res.body.data.should.be.an('array')
                     res.body.data.length.should.be.eql(0)
@@ -88,10 +87,10 @@ describe("HelperResp", () => {
                     done()
                 })
         })
-        it("should respond with 204 NO CONTENT with data in response as object", () => {
+        it("should respond with 200 with data in response as object", (done) => {
             request.get("/handleResult/object")
                 .end((err, res) => {
-                    res.should.have.status(204)
+                    res.should.have.status(200)
                     res.body.error.should.not.be.ok
                     res.body.data.should.be.an('object')
                     Object.keys(res.body.data).length.should.be.eql(0)
@@ -99,10 +98,22 @@ describe("HelperResp", () => {
                     done()
                 })
         })
+        it("should respond with 500 Error if there was some error", (done) => {
+            request.get("/handleResult/error").end((err, res) => {
+                should.exist(err)
+                err.should.be.an.instanceOf(Error);
+                res.should.have.status(500);
+                res.body.error.should.be.ok;
+                res.body.data.should.be.an("array");
+                res.body.data.length.should.be.eql(0);
+
+                done();
+            })
+        })
     })
 
     describe("#success", function() {
-        it("should respond with http success", () => {
+        it("should respond with http success", (done) => {
             request.get("/success")
                 .end((err, res) => {
                     res.should.have.status(200)
@@ -116,7 +127,7 @@ describe("HelperResp", () => {
     })
 
     describe("#failed", function() {
-        it("should respond with http failure", () => {
+        it("should respond with http failure", (done) => {
             request.get("/failed")
                 .end((err, res) => {
                     res.should.have.status(400)
@@ -130,13 +141,13 @@ describe("HelperResp", () => {
     })
 
     describe("#post", () => {
-        it("should respond with HTTP created", () => {
+        it("should respond with HTTP created", (done) => {
             request.post("/post")
                 .end((err, res) => {
                     res.should.have.status(201)
                     res.body.error.should.not.be.ok;
                     res.body.data.should.be.an("object")
-                    res.body.data.create.should.be.ok;
+                    res.body.data.created.should.be.ok;
 
                     done()
                 })
@@ -145,7 +156,7 @@ describe("HelperResp", () => {
 
 
     describe("#put", () => {
-        it("should respond with HTTP accepted", () => {
+        it("should respond with HTTP accepted", (done) => {
             request.put("/put")
                 .end((err, res) => {
                     res.should.have.status(202)
@@ -159,8 +170,8 @@ describe("HelperResp", () => {
     })
 
     describe("#delete", () => {
-        it("should respond with HTTP Delete", () => {
-            request.delete("/delete")
+        it("should respond with HTTP Delete", (done) => {
+            request.delete("/remove")
                 .end((err, res) => {
                     res.should.have.status(202)
                     res.body.error.should.not.be.ok;
@@ -173,18 +184,20 @@ describe("HelperResp", () => {
     })
 
     describe("#get", () => {
-        it("should respond with HTTP List []", () => {
+        it("should respond with HTTP List []", (done) => {
             request.get("/list")
                 .end((err, res) => {
                     res.should.have.status(200)
                     res.body.error.should.not.be.ok;
-                    res.body.data.should.be.an("array")
+                    res.body.data.should.be.an('object')
+                    res.body.data.count.should.be.eql(0)
+                    res.body.data.list.length.should.be.eql(0);
 
                     done()
                 })
         })
-        it("should respond with HTTP get /:id", () => {
-            request.get("/test/testname")
+        it("should respond with HTTP get /:id", (done) => {
+            request.get("/get/testname")
                 .end((err, res) => {
                     res.should.have.status(200)
                     res.body.error.should.not.be.ok;

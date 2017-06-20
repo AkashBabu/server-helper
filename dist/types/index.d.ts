@@ -4,4 +4,6 @@ import { HelperResp } from "./lib/helperResp";
 import { HelperTransform } from "./lib/helperTransform";
 import { HelperValidate } from "./lib/helperValidate";
 import { CRUD as Crud } from "./lib/crud";
-export { Helper, HelperMongo, HelperResp, HelperTransform, HelperValidate, Crud };
+import { HTTPInterface } from "./lib/httpInterface";
+import Session from "./lib/session";
+export { Helper, HelperMongo, HelperResp, HelperTransform, HelperValidate, Crud, HTTPInterface, Session };

@@ -1,49 +1,44 @@
 "use strict";
 const sh_mongo = require("mongojs");
 const sh_async = require("async");
-const sh_Logger = require('logger-switch');
+const sh_Logger = require("logger-switch");
 class HelperMongo {
     constructor(connStr, debug) {
-        this.sh_logger = new sh_Logger('sh-mongo');
-        this.sh_db = sh_mongo(connStr);
-        this.sh_logger[debug ? 'activate' : 'deactivate']();
-    }
-    isValidationOnUpdate(data) {
-        return data.length !== undefined;
-    }
-    isValidateObject(data) {
-        return data.length !== undefined;
+        this.logger = new sh_Logger("sh-mongo");
+        this.db = sh_mongo(connStr);
+        this.logger[debug ? "activate" : "deactivate"]();
+        return this;
     }
     /**
      * @description Returns Groupby which can be used in Mongo functions
      * @param  {string} group_by
      * @returns string
      */
-    getDateFormat(group_by) {
+    getDateFormat(groupBy) {
         let format = "%Y-%m-%d";
-        switch (group_by || '') {
-            case 'year':
+        switch (groupBy || "") {
+            case "year":
                 format = "%Y";
                 break;
-            case 'day':
+            case "day":
                 format = "%Y-%m-%d";
                 break;
-            case 'month':
+            case "month":
                 format = "%Y-%m";
                 break;
-            case 'day':
+            case "day":
                 format = "%Y-%m-%d";
                 break;
-            case 'hour':
+            case "hour":
                 format = "%Y-%m-%dT%H";
                 break;
-            case 'min':
+            case "min":
                 format = "%Y-%m-%dT%H:%M";
                 break;
-            case 'sec':
+            case "sec":
                 format = "%Y-%m-%dT%H:%M:%S";
                 break;
-            case 'milli':
+            case "milli":
                 format = "%Y-%m-%dT%H:%M:%S.%L";
                 break;
             default:
@@ -52,7 +47,7 @@ class HelperMongo {
         return format;
     }
     validateExistence(collName, validate, cb) {
-        this.sh_db.collection(collName).findOne(validate.query || validate, function (err, result) {
+        this.db.collection(collName).findOne(validate.query || validate, function (err, result) {
             if (!result) {
                 cb(validate.errMsg || "Document Does not Exist");
             }
@@ -69,7 +64,7 @@ class HelperMongo {
             validations = [validations];
         }
         sh_async.everySeries(validations, (condition, cb1) => {
-            this.sh_db.collection(collName).findOne(condition.query || condition, (err, result) => {
+            this.db.collection(collName).findOne(condition.query || condition, (err, result) => {
                 if (result) {
                     cb1(condition.errMsg || "Duplicate Document");
                 }
@@ -84,7 +79,7 @@ class HelperMongo {
     validateNonExistenceOnUpdate(collName, obj, validations, cb) {
         let id;
         try {
-            id = this.sh_db.ObjectId(obj._id);
+            id = this.db.ObjectId(obj._id);
         }
         catch (err) {
             return cb("Invalid Id");
@@ -98,7 +93,7 @@ class HelperMongo {
         let dbOperations = 0;
         sh_async.autoInject({
             getExistingObj: (cb1) => {
-                this.sh_db.collection(collName).findOne({
+                this.db.collection(collName).findOne({
                     _id: id
                 }, cb1);
             },
@@ -112,7 +107,7 @@ class HelperMongo {
                             if (field.query) {
                                 mongoQuery = field.query;
                             }
-                            this.sh_db.collection(collName).findOne(mongoQuery, {
+                            this.db.collection(collName).findOne(mongoQuery, {
                                 _id: 1
                             }, function (err, result) {
                                 if (result) {
@@ -138,12 +133,12 @@ class HelperMongo {
     }
     getById(collName, id, cb) {
         try {
-            id = this.sh_db.ObjectId(id);
+            id = this.db.ObjectId(id);
         }
         catch (err) {
-            return cb('Invalid Id');
+            return cb("Invalid Id");
         }
-        this.sh_db.collection(collName).findOne({
+        this.db.collection(collName).findOne({
             _id: id
         }, cb);
     }
@@ -155,7 +150,7 @@ class HelperMongo {
         let group = {
             _id: null,
             sno: {
-                $max: '$' + obj.key
+                $max: "$" + obj.key
             }
         };
         let aggregate = [
@@ -163,13 +158,13 @@ class HelperMongo {
         ];
         if (obj.unwind) {
             aggregate.push({
-                '$unwind': obj.unwind[0] == '$' ? obj.unwind : '$' + obj.unwind
+                "$unwind": obj.unwind[0] == "$" ? obj.unwind : "$" + obj.unwind
             });
         }
         aggregate.push({
-            '$group': group
+            "$group": group
         });
-        this.sh_db.collection(collName).aggregate(aggregate, (err, result) => {
+        this.db.collection(collName).aggregate(aggregate, (err, result) => {
             if (!err) {
                 if (result && result[0]) {
                     cb(null, result[0].sno);
@@ -188,7 +183,7 @@ class HelperMongo {
             if (!err) {
                 let sno = result + 1;
                 if (obj.maxValue && sno > obj.maxValue) {
-                    let i = (obj.hasOwnProperty('minValue') ? obj.minValue : 1);
+                    let i = (obj.hasOwnProperty("minValue") ? obj.minValue : 1);
                     let found = false;
                     let find = Object.assign({}, obj.query);
                     sh_async.whilst(() => {
@@ -196,23 +191,23 @@ class HelperMongo {
                             return false;
                         }
                         return !found;
-                    }, (cb) => {
+                    }, (cb1) => {
                         find[obj.key] = i;
-                        this.sh_db.collection(collName).findOne(find, function (err, result) {
-                            if (!result) {
+                        this.db.collection(collName).findOne(find, function (err1, result1) {
+                            if (!result1) {
                                 found = true;
                             }
                             else {
                                 i++;
                             }
-                            cb(err, result);
+                            cb1(err1, result1);
                         });
-                    }, function (err, n) {
+                    }, function (err1, n) {
                         if (found) {
-                            cb(err, i);
+                            cb(err1, i);
                         }
                         else {
-                            cb(obj.errMsg || 'Could not Get Next Sequence Number', null);
+                            cb(obj.errMsg || "Could not Get Next Sequence Number", null);
                         }
                     });
                 }
@@ -231,14 +226,14 @@ class HelperMongo {
     update(collName, obj, cb) {
         let id;
         try {
-            id = this.sh_db.ObjectId(obj._id);
+            id = this.db.ObjectId(obj._id);
         }
         catch (err) {
-            return cb('Invalid Id');
+            return cb("Invalid Id");
         }
         delete obj._id;
         obj.utime = new Date();
-        this.sh_db.collection(collName).update({
+        this.db.collection(collName).update({
             _id: id
         }, {
             $set: obj
@@ -247,65 +242,33 @@ class HelperMongo {
             multi: false,
         }, cb);
     }
-    getObj(data, sort) {
-        if (data) {
-            if (typeof data == 'string') {
-                try {
-                    data = JSON.parse(data);
-                    return data;
-                }
-                catch (err) {
-                    this.sh_logger.error(err);
-                    if (sort == true) {
-                        data = data.replace(/ /g, "");
-                        if (data[0] == '-') {
-                            let val = data.slice(1);
-                            data = {};
-                            data[val] = -1;
-                        }
-                        else {
-                            let val = data;
-                            data = {};
-                            data[val] = 1;
-                        }
-                        return data;
-                    }
-                    else {
-                        return {};
-                    }
-                }
-            }
-            return data;
-        }
-        return {};
-    }
     getList(collName, obj, cb) {
         obj = obj || {};
         obj.query = this.getObj(obj.query);
         obj.project = this.getObj(obj.project);
         obj.sort = this.getObj(obj.sort, true);
         if (obj.search) {
-            let regex = new RegExp('.*' + obj.search + '.*', 'i');
-            (obj.query)[obj.searchField || 'name'] = {
+            let regex = new RegExp(".*" + obj.search + ".*", "i");
+            (obj.query)[obj.searchField || "name"] = {
                 $regex: regex
             };
         }
         sh_async.autoInject({
-            getCount: (cb) => {
-                this.sh_db.collection(collName).find(obj.query).count(cb);
+            getCount: (cb1) => {
+                this.db.collection(collName).find(obj.query).count(cb1);
             },
-            getList: (cb) => {
+            getList: (cb1) => {
                 if (obj.recordsPerPage) {
                     let limit = parseInt(obj.recordsPerPage.toString());
                     let skip = (parseInt(obj.pageNo ? obj.pageNo.toString() : "1") - 1) * limit;
-                    this.sh_db.collection(collName).find(obj.query, obj.project)
+                    this.db.collection(collName).find(obj.query, obj.project)
                         .sort(obj.sort)
                         .skip(skip)
-                        .limit(limit, cb);
+                        .limit(limit, cb1);
                 }
                 else {
-                    this.sh_db.collection(collName).find(obj.query, obj.project)
-                        .sort(obj.sort, cb);
+                    this.db.collection(collName).find(obj.query, obj.project)
+                        .sort(obj.sort, cb1);
                 }
             }
         }, function (err, results) {
@@ -317,22 +280,22 @@ class HelperMongo {
     }
     remove(collName, id, removeDoc, cb) {
         try {
-            id = this.sh_db.ObjectId(id);
+            id = this.db.ObjectId(id);
         }
         catch (err) {
-            return cb('Invalid Id');
+            return cb("Invalid Id");
         }
-        if (!cb && typeof removeDoc == 'function') {
+        if (!cb && typeof removeDoc == "function") {
             cb = removeDoc;
             removeDoc = true;
         }
         if (removeDoc) {
-            this.sh_db.collection(collName).remove({
+            this.db.collection(collName).remove({
                 _id: id
             }, cb);
         }
         else {
-            this.sh_db.collection(collName).update({
+            this.db.collection(collName).update({
                 _id: id
             }, {
                 $set: {
@@ -363,8 +326,8 @@ class HelperMongo {
             $gte: obj.key.min,
             $lt: obj.key.max
         };
-        let dateField = '$' + obj.key.name;
-        if (obj.key.type.toLowerCase() == 'unix') {
+        let dateField = "$" + obj.key.name;
+        if (obj.key.type.toLowerCase() == "unix") {
             dateField = {
                 $add: [new Date(0), "$" + obj.key.name]
             };
@@ -381,7 +344,7 @@ class HelperMongo {
             project1[reqField] = 1;
         });
         let group = {
-            _id: '$date'
+            _id: "$date"
         };
         obj.project.forEach((reqField) => {
             group[reqField] = {};
@@ -393,22 +356,22 @@ class HelperMongo {
             { $group: group }
         ];
         let project2 = {};
-        if (obj.key.type.toLowerCase() == 'unix') {
+        if (obj.key.type.toLowerCase() == "unix") {
             project2[obj.key.name] = {
-                $subtract: ['$_id', new Date(0)]
+                $subtract: ["$_id", new Date(0)]
             };
             obj.project.forEach((reqField) => {
                 project2[reqField] = 1;
             });
         }
         else {
-            project2[obj.key.name] = '$_id';
+            project2[obj.key.name] = "$_id";
             obj.project.forEach((reqField) => {
                 project2[reqField] = 1;
             });
         }
         aggregate.push({ $project: project2 });
-        this.sh_db.collection(collName).aggregate(aggregate, cb);
+        this.db.collection(collName).aggregate(aggregate, cb);
     }
     selectNinM(collName, obj, cb) {
         /**
@@ -428,8 +391,8 @@ class HelperMongo {
          */
         let match = obj.query;
         let push = {};
-        obj.project.forEach(key => {
-            push[key] = '$' + key;
+        obj.project.forEach((key) => {
+            push[key] = "$" + key;
         });
         let group1 = {
             _id: null,
@@ -441,24 +404,24 @@ class HelperMongo {
             }
         };
         let unwind = {
-            path: '$data',
-            includeArrayIndex: 'index'
+            path: "$data",
+            includeArrayIndex: "index"
         };
         let project = {
             nth: {
                 $floor: {
-                    $divide: ['$index', {
-                            $divide: ['$count', obj.numOfPoints]
+                    $divide: ["$index", {
+                            $divide: ["$count", obj.numOfPoints]
                         }]
                 }
             },
             data: 1
         };
         let group2 = {
-            _id: '$nth',
+            _id: "$nth",
         };
         group2.data = {};
-        group2.data[obj.groupLogic] = '$data';
+        group2.data[obj.groupLogic] = "$data";
         let aggregate = [{
                 $match: match
             }, {
@@ -470,7 +433,45 @@ class HelperMongo {
             }, {
                 $group: group2
             }];
-        this.sh_db.collection(collName).aggregate(aggregate, cb);
+        this.db.collection(collName).aggregate(aggregate, cb);
+    }
+    isValidationOnUpdate(data) {
+        return data.length !== undefined;
+    }
+    isValidateObject(data) {
+        return data.length !== undefined;
+    }
+    getObj(data, sort) {
+        if (data) {
+            if (typeof data == "string") {
+                try {
+                    data = JSON.parse(data);
+                    return data;
+                }
+                catch (err) {
+                    // this.logger.error(err);
+                    if (sort == true) {
+                        data = data.replace(/ /g, "");
+                        if (data[0] == "-") {
+                            let val = data.slice(1);
+                            data = {};
+                            data[val] = -1;
+                        }
+                        else {
+                            let val = data;
+                            data = {};
+                            data[val] = 1;
+                        }
+                        return data;
+                    }
+                    else {
+                        return {};
+                    }
+                }
+            }
+            return data;
+        }
+        return {};
     }
 }
 exports.HelperMongo = HelperMongo;
