@@ -45,7 +45,7 @@ class Cookie {
             });
         }
         return (req, res, next) => {
-            if (req.user || req.redirect) {
+            if (req.user) {
                 next();
             }
             else {
@@ -54,36 +54,14 @@ class Cookie {
                 }
                 else {
                     if (failureRedirect) {
-                        req.redirect = true;
                         res.redirect(failureRedirect);
                     }
                     else {
-                        // res.redirect(this.options.login.failureRedirect);
                         this.helperResp.unauth(res);
                     }
                 }
             }
         };
-        // return (req, res, next) => {
-        //     this.logger.log("req.user", req.user)
-        //     if (req.user && req.user.redirect) {
-        //         req.user.redirect = false;
-        //         next();
-        //     } else {
-        //         let url = req.url;
-        //         if (whitelist.indexOf(url) > -1) {
-        //             this.logger.log("whitelisted")
-        //             if (req.isAuthenticated()) {
-        //                 req.user.redirect = true;
-        //                 res.redirect("/portal/index");
-        //             } else {
-        //                 next();
-        //             }
-        //         } else {
-        //             res.redirect("/portal/login");
-        //         }
-        //     }
-        // }
     }
     logout() {
         return (req, res, next) => {
@@ -92,7 +70,6 @@ class Cookie {
         };
     }
     configureSession(app) {
-        // let app = this.options.app;
         let self = this;
         this.app = app;
         app.use(session(self.session));
@@ -133,8 +110,8 @@ class Cookie {
                         upsert: false
                     }, (err1, result1) => {
                         let valid = self.helper.verifySaltHash(user.password, password);
-                        this.logger.log("valid user:", user);
-                        cb(null, valid ? user : false);
+                        let result = valid ? user : false;
+                        cb(null, result);
                     });
                 }
                 else {
@@ -148,13 +125,15 @@ class Cookie {
             passReqToCallback: true,
             session: true
         }, this.options.passportRegister ? this.options.passportRegister : (req, email, password, cb) => {
+            // this.logger.log("in register:", req.body)
             self.db.collection(self.options.collName).findOne({
                 email: email
             }, (err, user) => {
                 if (!user) {
-                    user.password = self.helper.saltHash(user.passsword);
+                    req.body.password = self.helper.saltHash(req.body.password);
                     self.db.collection(self.options.collName).insert(req.body, (err1, result1) => {
-                        cb(null, true);
+                        // this.logger.log(err1, result1);
+                        cb(err1, result1);
                     });
                 }
                 else {
