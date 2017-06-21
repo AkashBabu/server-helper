@@ -13,7 +13,7 @@ var helper = new Helper()
 var db = require("mongojs")(config.options.connStr)
 
 
-var options = Object.assign({ passport: passport }, config.options);
+var options = Object.assign({}, config.options);
 
 var Cookie = Session.Cookie;
 var cookie = new Cookie(options, true)
@@ -26,15 +26,15 @@ app.use(bodyParser.urlencoded({ extended: false }))
 cookie.configurePassport(passport);
 cookie.configureSession(app)
 
-app.use(cookie.validate(['/portal/login', '/login'], '/portal/login'))
+app.use(cookie.validate(['/portal/login', '/portal/register', '/login', '/register'], '/portal/login'))
 
 app.post('/login', cookie.login());
 
 
-// app.post('/register', cookie.register());
+app.post('/register', cookie.register());
 
 app.use((req, res, next) => {
-    console.log('req.user:', req.user)
+    // console.log('req.user:', req.user)
     next()
 })
 
@@ -50,21 +50,21 @@ app.use((req, res, next) => {
 //         data: 'valid'
 //     })
 // })
-// app.get("/logout", cookie.logout(), (req, res) => {
-//     res.send("Logged Out")
-// })
+app.get("/logout", cookie.logout(), (req, res) => {
+    res.send("Logged Out")
+})
 
 app.get('/portal/login', (req, res) => {
-    // res.end("Login Page")
-    res.sendFile(path.join(__dirname, "login.html"))
+    res.end("Login Page")
+        // res.sendFile(path.join(__dirname, "login.html"))
 })
 app.get('/portal/register', (req, res) => {
-    // res.end("Login Page")
-    res.sendFile(path.join(__dirname, "register.html"))
+    res.end("Register Page")
+        // res.sendFile(path.join(__dirname, "register.html"))
 })
 app.get('/portal/index', (req, res) => {
-    // res.end("Login Page")
-    res.sendFile(path.join(__dirname, "index.html"))
+    res.end("Index Page")
+        // res.sendFile(path.join(__dirname, "index.html"))
 })
 
 app.use((req, res) => {
@@ -80,20 +80,20 @@ app.use((err, req, res, next) => {
     res.status(500).send("Internal Server Error")
 })
 
-if (process.argv[2]) {
-    var users = [{
-        email: "test1@mail.com",
-        password: helper.saltHash('test123')
-    }, {
-        email: 'test2@mail.com',
-        password: helper.saltHash('test123')
-    }]
-    db.collection(config.options.collName).insert(users, () => {
-        app.listen(process.argv[2], () => {
-            console.log('Server runnig on:', process.argv[2]);
-        })
+// if (process.argv[2]) {
+//     var users = [{
+//         email: "test1@mail.com",
+//         password: helper.saltHash('test123')
+//     }, {
+//         email: 'test2@mail.com',
+//         password: helper.saltHash('test123')
+//     }]
+//     db.collection(config.options.collName).insert(users, () => {
+//         app.listen(process.argv[2], () => {
+//             console.log('Server runnig on:', process.argv[2]);
+//         })
 
-    });
-}
+//     });
+// }
 
 module.exports = app;
