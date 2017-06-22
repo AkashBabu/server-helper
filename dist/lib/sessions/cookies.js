@@ -28,7 +28,22 @@ class Cookie {
         return this.passport.authenticate("local-login", this.options.login);
     }
     register() {
-        return this.passport.authenticate("local-register", this.options.register);
+        return (req, res, next) => {
+            this.passport.authenticate("local-register", (err, user, info) => {
+                if (err) {
+                    return res.redirect(this.options.register.failureRedirect);
+                }
+                if (!user) {
+                    return res.status(400).send({ error: true, data: (info || "Invalid Register Information") });
+                }
+                req.logIn(user, (err1) => {
+                    if (err1) {
+                        next(err1);
+                    }
+                    return res.redirect(this.options.register.successRedirect);
+                });
+            })(req, res, next);
+        };
     }
     validate(whitelist, failureRedirect) {
         function isWhitelist(req, urlSpecs) {
@@ -125,7 +140,6 @@ class Cookie {
             passReqToCallback: true,
             session: true
         }, this.options.passportRegister ? this.options.passportRegister : (req, email, password, cb) => {
-            // this.logger.log("in register:", req.body)
             self.db.collection(self.options.collName).findOne({
                 email: email
             }, (err, user) => {
@@ -137,7 +151,8 @@ class Cookie {
                     });
                 }
                 else {
-                    cb(err, false);
+                    this.logger.log("Duplicate Email");
+                    cb(err, false, "Duplicate Email");
                 }
             });
         }));
