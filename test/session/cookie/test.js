@@ -110,11 +110,29 @@ describe("SESSION-COOKIE", () => {
                     })
             })
     })
-    it("should return duplicate Email on duplicate email")
+    it("should return duplicate Email on duplicate email", done => {
+        var newUser = {
+            email: 'test1@mail.com',
+            password: 'test123'
+        }
+
+        agent.post("/register")
+            .send(newUser)
+            .end((err, res) => {
+                // res.should.redirect;
+                // res.should.have.cookie("connect.sid")
+                res.should.have.status(400);
+                res.body.should.include.keys(["error", 'data']);
+                res.body.error.should.be.ok;
+                res.body.data.should.be.eql("Duplicate Email");
+
+                done();
+            })
+    })
 
     it("should be redirected to login page, if not logged in")
     it("should be able to access other urls after successfull login")
 
-    it("should ")
+    it("should use the provided register and login function")
 
 })

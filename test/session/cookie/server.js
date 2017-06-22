@@ -31,6 +31,16 @@ app.use(cookie.validate(['/portal/login', '/portal/register', '/login', '/regist
 app.post('/login', cookie.login());
 
 
+// app.post("/register", (req, res, next) => {
+//         passport.authenticate('local-register', (err, user, info) => {
+//             if (err) next(err);
+//             if (!user) res.status(400).send({ error: true, data: info });
+//             res.login(user, (err) => {
+//                 if (err) next(err);
+//                 return res.redirect()
+//             })
+//         })(req, res, next)
+//     })
 app.post('/register', cookie.register());
 
 app.use((req, res, next) => {
