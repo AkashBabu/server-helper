@@ -11,7 +11,7 @@
     "connect-redis": "^3.3.0",
     "express-session": "^1.14.2",
     "jwt-simple": "^0.5.1",
-    "logger-switch": "^2.0.0",
+    "logger-switch": "^3.0.1",
     "moment": "^2.18.1",
     "mongojs": "^2.4.0",
     "passport": "^0.3.2",
