@@ -3,39 +3,46 @@ import * as sh_crypto from "crypto";
 
 import * as sh_Logger from "logger-switch";
 import * as sh_async from "async";
+import * as express from "express";
 
-export interface IHTTPResp {
-    status: (code: number) => { send: (data: any) => void };
+export interface IHTTPResp extends express.Response{}
+export interface IValidationFn {
+    (data: any, ...args: any[]): (boolean | void)
 }
 
+export interface ITransformFn extends Function {
+    (data: any, ...args: any[]): any
+}
 export interface IFieldSpec {
     name: string;
     type: any;
     required?: boolean;
-    validate?: any;
-    validateArgs?: any;
-    validateErrMsg: any;
-    transform: any;
-    transformArgs: any;
+    validate?: IValidationFn | IValidationFn[];
+    validateArgs?: any[];
+    validateErrMsg: string | string[];
+    transform: ITransformFn | ITransformFn[];
+    transformArgs: any[];
     errMsg: string;
 }
 
 export interface IHelper {
-    filterObj(obj: object, filter: string[]): object;
+    filterKeysInObj(obj: object, filter: string[]): object;
+    retainKeysInObj(obj: object, filter: string[]): object;
     weakPwd(pwd: string, config: object): string;
     prefixToQueryObject(prefix: string, obj: object): object;
     validateFieldNamesExistence(obj: object, fieldNames: string[], strict: boolean): boolean;
     validateFieldsExistenceCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: Function): void;
     validateFieldsCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: Function);
     validateFieldsExistence(obj: object, fieldSpecs: IFieldSpec[], strict: boolean): boolean;
-    saltHash(pwd: string): string;
-    verifySaltHash(salted: string, pwd: string): boolean;
+    saltHash(pwd: string, saltLength?: number): string;
+    verifySaltHash(salted: string, pwd: string, saltLength?: number): boolean;
     handleResult(res: IHTTPResp, err: Error, result: any, type?: string): void;
 }
 
 export class Helper implements IHelper {
     private logger = new sh_Logger("sh-helper");
     private chance = new sh_Chance();
+    public filterObj = this.filterKeysInObj;
     public validateFieldsCb = this.validateFieldsExistenceCb;
     constructor(debug: boolean) {
         this.logger[debug ? "activate" : "deactivate"]();
@@ -43,15 +50,23 @@ export class Helper implements IHelper {
         return this;
     }
 
-
-    public filterObj(obj: object, filter: string[]): object {
-        Object.keys(obj).forEach((key) => {
+    public filterKeysInObj(obj: object, filter: string[]): object {
+        let objCpy = Object.assign({}, obj);
+        Object.keys(objCpy).forEach((key) => {
             if (filter.indexOf(key) == -1) {
-                delete obj[key];
+                delete objCpy[key];
             }
         })
 
-        return obj;
+        return objCpy;
+    }
+    public retainKeysInObj(obj: object, retain: string[]): object {
+        let result = {};
+        retain.forEach((key) => {
+            result[key] = obj[key];
+        })
+
+        return result;
     }
 
     public weakPwd(pwd: string, config: object): string {
@@ -99,7 +114,7 @@ export class Helper implements IHelper {
         })
     }
 
-    public validateFieldsExistenceCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: Function): void {
+    public validateFieldsExistenceCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: (err?: string) => void): void {
         let cbCalled = false
         if (strict == true) {
             if (Object.keys(obj).length < fieldSpecs.length) {
@@ -127,7 +142,9 @@ export class Helper implements IHelper {
                             }
                             if (!validType && fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) == -1) {
                                 this.logger.log("Invalid Type:", fieldSpec.name);
-                                return cb(errMsg1, false);
+                                return setImmediate(() => {
+                                    cb(errMsg1, false);
+                                });
                             }
 
                         } else {
@@ -140,14 +157,16 @@ export class Helper implements IHelper {
 
                             if (!validType) {
                                 this.logger.log("Invalid Type:", fieldSpec.name);
-                                return cb(errMsg1, false);
+                                return setImmediate(() => {
+                                    cb(errMsg1, false);
+                                })
                             }
                         }
 
                         if (!fieldSpec.validateArgs) {
                             fieldSpec.validateArgs = [];
                         }
-                        if (fieldSpec.validateArgs.constructor != Array) {
+                        if (!Array.isArray(fieldSpec.validateArgs)) {
                             fieldSpec.validateArgs = [fieldSpec.validateArgs];
                         }
                         if (!fieldSpec.validate) {
@@ -172,7 +191,7 @@ export class Helper implements IHelper {
 
                                 let validateArgs = fieldSpec.validateArgs[loop] || []
                                 loop++;
-                                if (validateArgs.constructor != Array) {
+                                if (!Array.isArray(validateArgs)) {
                                     validateArgs = [validateArgs]
                                 } else {
                                     validateArgs = validateArgs.slice(0)
@@ -204,17 +223,23 @@ export class Helper implements IHelper {
                                 } else {
                                     if (!validate.apply(null, validateArgs)) {
                                         this.logger.log("Validation Failed:", fieldSpec.name);
-                                        cb1(errMsg, false);
+                                        setImmediate(() => {
+                                            cb1(errMsg, false);
+                                        })
                                     } else {
-                                        cb1(null, true);
+                                        setImmediate(() => {
+                                            cb1(null, true);
+                                        })
                                     }
                                 }
                             },
                             (err, done) => {
                                 if (err) {
-                                    cb(err, false);
+                                    setImmediate(() => {
+                                        cb(err, false);
+                                    })
                                 } else {
-                                    if (fieldSpec.transform && fieldSpec.transform.constructor == Function) {
+                                    if (fieldSpec.transform && typeof fieldSpec.transform == "function") {
                                         if (fieldSpec.transformArgs) {
                                             fieldSpec.transformArgs.unshift(obj[fieldSpec.name]);
                                         } else {
@@ -245,22 +270,30 @@ export class Helper implements IHelper {
 
                                         } else {
                                             obj[fieldSpec.name] = fieldSpec.transform.apply(null, fieldSpec.transformArgs);
-                                            cb(null, true);
+                                            setImmediate(() => {
+                                                cb(null, true);
+                                            })
                                         }
 
 
                                     } else {
-                                        cb(null, true);
+                                        setImmediate(() => {
+                                            cb(null, true);
+                                        })
                                     }
                                 }
                             })
 
                     } else {
                         if (fieldSpec.hasOwnProperty("required") && !fieldSpec.required) {
-                            cb(null, true);
+                            setImmediate(() => {
+                                cb(null, true);
+                            })
                         } else {
                             this.logger.log("Field Not Defined:", fieldSpec.name);
-                            cb(errMsg1, false);
+                            setImmediate(() => {
+                                cb(errMsg1, false);
+                            })
                         }
                     }
                 }, callback)
@@ -297,7 +330,7 @@ export class Helper implements IHelper {
 
                 if (fieldSpec.validate) {
 
-                    if (fieldSpec.validate.constructor != Array) {
+                    if (!Array.isArray(fieldSpec.validate)) {
                         fieldSpec.validate = [fieldSpec.validate]
                     }
                     if (!fieldSpec.validateArgs) {
@@ -322,9 +355,9 @@ export class Helper implements IHelper {
                     }
 
                 }
-                if (fieldSpec.transform) {
+                if (fieldSpec.transform && typeof fieldSpec.transform == "function") {
                     if (fieldSpec.transformArgs) {
-                        if (fieldSpec.transformArgs.constructor != Array) {
+                        if (!Array.isArray(fieldSpec.transformArgs)) {
                             fieldSpec.transformArgs = [fieldSpec.transformArgs];
                         }
 
@@ -343,17 +376,18 @@ export class Helper implements IHelper {
             }
         })
     }
-    public saltHash(pwd: string): string {
+    public saltHash(pwd: string, saltLength?: number): string {
         let salt = this.chance.string({
-            length: 16,
+            length: saltLength || 16,
             pool: "abcde1234567890"
         });
         return salt + sh_crypto.createHmac("sha256", salt).update(pwd).digest("hex")
     }
-    public verifySaltHash(salted: string, pwd: string): boolean {
+    public verifySaltHash(salted: string, pwd: string, saltLength?: number): boolean {
+        saltLength = saltLength || 16
         let hashed = {
-            salt: salted.slice(0, 16),
-            hash: salted.slice(16)
+            salt: salted.slice(0, saltLength),
+            hash: salted.slice(saltLength)
         }
 
         let thisHash = sh_crypto.createHmac("sha256", hashed.salt).update(pwd).digest("hex");

@@ -1,9 +1,15 @@
+import * as express from "express";
+
 export interface ICallback {
     (err?: string, result?: object[] | object): any
 }
 
+export interface IRequest extends express.Request {
+    body?: object;  
+}
+export interface IResponse extends express.Response {}
 export interface IMiddleware {
-    (req: any, res: any, next?: any): void;
+    (req: IRequest, res: IResponse, next?: express.NextFunction): void;
 }
 
 export function isUndefined(data): boolean {
