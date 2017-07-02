@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const helper_1 = require("./lib/helper");
 exports.Helper = helper_1.Helper;
 const helperMongo_1 = require("./lib/helperMongo");
@@ -15,3 +16,5 @@ const httpInterface_1 = require("./lib/httpInterface");
 exports.HTTPInterface = httpInterface_1.HTTPInterface;
 const session_1 = require("./lib/session");
 exports.Session = session_1.default;
+const crudHandler_1 = require("./lib/crudHandler");
+exports.CrudHandler = crudHandler_1.CrudHandler;

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const moment = require("moment");
 const jwt = require("jwt-simple");
 const mongo = require("mongojs");

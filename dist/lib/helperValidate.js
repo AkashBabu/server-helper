@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const sh_mongo = require("mongojs");
 const sh_moment = require("moment");
 const sh_Logger = require("logger-switch");

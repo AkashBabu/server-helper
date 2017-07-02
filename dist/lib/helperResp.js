@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const sh_Logger = require("logger-switch");
 class HelperResp {
     constructor(debug) {

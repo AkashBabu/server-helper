@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const session = require("express-session");
 const ConnectRedis = require("connect-redis");
 const LocalStrategy = require("passport-local");

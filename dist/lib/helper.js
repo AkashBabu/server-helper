@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const sh_Chance = require("chance");
 const sh_crypto = require("crypto");
 const sh_Logger = require("logger-switch");
@@ -7,17 +8,26 @@ class Helper {
     constructor(debug) {
         this.logger = new sh_Logger("sh-helper");
         this.chance = new sh_Chance();
+        this.filterObj = this.filterKeysInObj;
         this.validateFieldsCb = this.validateFieldsExistenceCb;
         this.logger[debug ? "activate" : "deactivate"]();
         return this;
     }
-    filterObj(obj, filter) {
-        Object.keys(obj).forEach((key) => {
+    filterKeysInObj(obj, filter) {
+        let objCpy = Object.assign({}, obj);
+        Object.keys(objCpy).forEach((key) => {
             if (filter.indexOf(key) == -1) {
-                delete obj[key];
+                delete objCpy[key];
             }
         });
-        return obj;
+        return objCpy;
+    }
+    retainKeysInObj(obj, retain) {
+        let result = {};
+        retain.forEach((key) => {
+            result[key] = obj[key];
+        });
+        return result;
     }
     weakPwd(pwd, config) {
         let error;
@@ -81,7 +91,9 @@ class Helper {
                         }
                         if (!validType && fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) == -1) {
                             this.logger.log("Invalid Type:", fieldSpec.name);
-                            return cb(errMsg1, false);
+                            return setImmediate(() => {
+                                cb(errMsg1, false);
+                            });
                         }
                     }
                     else {
@@ -94,13 +106,15 @@ class Helper {
                         }
                         if (!validType) {
                             this.logger.log("Invalid Type:", fieldSpec.name);
-                            return cb(errMsg1, false);
+                            return setImmediate(() => {
+                                cb(errMsg1, false);
+                            });
                         }
                     }
                     if (!fieldSpec.validateArgs) {
                         fieldSpec.validateArgs = [];
                     }
-                    if (fieldSpec.validateArgs.constructor != Array) {
+                    if (!Array.isArray(fieldSpec.validateArgs)) {
                         fieldSpec.validateArgs = [fieldSpec.validateArgs];
                     }
                     if (!fieldSpec.validate) {
@@ -120,7 +134,7 @@ class Helper {
                         let errMsg = fieldSpec.validateErrMsg[loop] ? fieldSpec.validateErrMsg[loop] : (fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name);
                         let validateArgs = fieldSpec.validateArgs[loop] || [];
                         loop++;
-                        if (validateArgs.constructor != Array) {
+                        if (!Array.isArray(validateArgs)) {
                             validateArgs = [validateArgs];
                         }
                         else {
@@ -151,18 +165,24 @@ class Helper {
                         else {
                             if (!validate.apply(null, validateArgs)) {
                                 this.logger.log("Validation Failed:", fieldSpec.name);
-                                cb1(errMsg, false);
+                                setImmediate(() => {
+                                    cb1(errMsg, false);
+                                });
                             }
                             else {
-                                cb1(null, true);
+                                setImmediate(() => {
+                                    cb1(null, true);
+                                });
                             }
                         }
                     }, (err, done) => {
                         if (err) {
-                            cb(err, false);
+                            setImmediate(() => {
+                                cb(err, false);
+                            });
                         }
                         else {
-                            if (fieldSpec.transform && fieldSpec.transform.constructor == Function) {
+                            if (fieldSpec.transform && typeof fieldSpec.transform == "function") {
                                 if (fieldSpec.transformArgs) {
                                     fieldSpec.transformArgs.unshift(obj[fieldSpec.name]);
                                 }
@@ -193,22 +213,30 @@ class Helper {
                                 }
                                 else {
                                     obj[fieldSpec.name] = fieldSpec.transform.apply(null, fieldSpec.transformArgs);
-                                    cb(null, true);
+                                    setImmediate(() => {
+                                        cb(null, true);
+                                    });
                                 }
                             }
                             else {
-                                cb(null, true);
+                                setImmediate(() => {
+                                    cb(null, true);
+                                });
                             }
                         }
                     });
                 }
                 else {
                     if (fieldSpec.hasOwnProperty("required") && !fieldSpec.required) {
-                        cb(null, true);
+                        setImmediate(() => {
+                            cb(null, true);
+                        });
                     }
                     else {
                         this.logger.log("Field Not Defined:", fieldSpec.name);
-                        cb(errMsg1, false);
+                        setImmediate(() => {
+                            cb(errMsg1, false);
+                        });
                     }
                 }
             }, callback);
@@ -243,7 +271,7 @@ class Helper {
                     }
                 }
                 if (fieldSpec.validate) {
-                    if (fieldSpec.validate.constructor != Array) {
+                    if (!Array.isArray(fieldSpec.validate)) {
                         fieldSpec.validate = [fieldSpec.validate];
                     }
                     if (!fieldSpec.validateArgs) {
@@ -265,9 +293,9 @@ class Helper {
                         return false;
                     }
                 }
-                if (fieldSpec.transform) {
+                if (fieldSpec.transform && typeof fieldSpec.transform == "function") {
                     if (fieldSpec.transformArgs) {
-                        if (fieldSpec.transformArgs.constructor != Array) {
+                        if (!Array.isArray(fieldSpec.transformArgs)) {
                             fieldSpec.transformArgs = [fieldSpec.transformArgs];
                         }
                         fieldSpec.transformArgs.unshift(obj[fieldSpec.name]);
@@ -285,17 +313,18 @@ class Helper {
             }
         });
     }
-    saltHash(pwd) {
+    saltHash(pwd, saltLength) {
         let salt = this.chance.string({
-            length: 16,
+            length: saltLength || 16,
             pool: "abcde1234567890"
         });
         return salt + sh_crypto.createHmac("sha256", salt).update(pwd).digest("hex");
     }
-    verifySaltHash(salted, pwd) {
+    verifySaltHash(salted, pwd, saltLength) {
+        saltLength = saltLength || 16;
         let hashed = {
-            salt: salted.slice(0, 16),
-            hash: salted.slice(16)
+            salt: salted.slice(0, saltLength),
+            hash: salted.slice(saltLength)
         };
         let thisHash = sh_crypto.createHmac("sha256", hashed.salt).update(pwd).digest("hex");
         return (hashed.hash == thisHash);

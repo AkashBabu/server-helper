@@ -6,4 +6,5 @@ import { HelperValidate } from "./lib/helperValidate";
 import { CRUD as Crud } from "./lib/crud";
 import { HTTPInterface } from "./lib/httpInterface";
 import Session from "./lib/session";
-export { Helper, HelperMongo, HelperResp, HelperTransform, HelperValidate, Crud, HTTPInterface, Session };
+import { CrudHandler } from "./lib/crudHandler";
+export { Helper, HelperMongo, HelperResp, HelperTransform, HelperValidate, Crud, HTTPInterface, Session, CrudHandler };

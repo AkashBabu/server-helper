@@ -1,6 +1,6 @@
 import { JWT } from "./sessions/jwt";
 import { Cookie } from "./sessions/cookies";
-declare var _default: {
+declare const _default: {
     JWT: typeof JWT;
     Cookie: typeof Cookie;
 };

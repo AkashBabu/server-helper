@@ -27,6 +27,7 @@ export declare class HTTPInterface {
     private logger;
     private helperMongo;
     constructor(config: IConfig, debug?: boolean);
+    private processConfiguration();
     private configureRoutes();
     private getCollNames();
     private validateMiddleware();

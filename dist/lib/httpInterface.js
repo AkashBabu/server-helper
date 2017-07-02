@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const mongojs = require("mongojs");
 const sh_Logger = require("logger-switch");
@@ -15,8 +16,12 @@ class HTTPInterface {
         this.helperResp = new helperResp_1.HelperResp(debug);
         this.logger[debug ? "activate" : "deactivate"]();
         this.helperMongo = new helperMongo_1.HelperMongo(this.config.db.url, debug);
+        this.processConfiguration();
         this.configureRoutes();
         return this.router;
+    }
+    processConfiguration() {
+        this.mainRoutes;
     }
     configureRoutes() {
         const handlers = {
@@ -57,7 +62,8 @@ class HTTPInterface {
                 next();
             }
             else {
-                this.db.collection(req.params.collName || unknownColl).insert(req.body, (err, result) => {
+                let inputFormat = this.config.collections[req.params.collName].
+                    this.db.collection(req.params.collName || unknownColl).insert(req.body, (err, result) => {
                     if (result) {
                         this.helperResp.post(res, result);
                     }
