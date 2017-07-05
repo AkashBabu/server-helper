@@ -2,7 +2,7 @@ import * as mongo from "mongojs";
 import * as sh_Logger from "logger-switch";
 
 import { HelperMongo, HelperResp, Helper } from "../index";
-import { IMiddleware, IFormValidations } from "../lib.com";
+import { IMiddleware } from "../lib.com";
 
 export interface ICrudHandlerOptions {
     connStr: string;

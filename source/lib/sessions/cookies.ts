@@ -6,6 +6,7 @@ import { IMiddleware, isUndefined } from "../../lib.com"
 import * as mongo from "mongojs";
 import { HelperResp, Helper } from "../../index";
 import * as sh_Logger from "logger-switch";
+import * as express from "express";
 
 
 export interface IUrl {

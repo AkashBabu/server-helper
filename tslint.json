@@ -28,8 +28,8 @@
         "no-console": [
             true,
             "log",
-            "warn",
-            "error",
+            // "warn",
+            // "error",
             "info",
             "debug"
         ],
