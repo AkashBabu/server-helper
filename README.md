@@ -1,8 +1,8 @@
 # server-helper
-# express-toppings
+<!--# express-toppings-->
 
-// Sessions
+Working with expressjs made even more easier with `server-helper`
 
-// helper validate args should be against the given functions
+It includes commonly used Function, input-validations, sessions, jwt, crud-handling, transformations etc
 
-constructors declared or initialised within a constructor is not getting intellisense
+For more documentation please [visit](https://akashbabu.github.io/server-helper/)
