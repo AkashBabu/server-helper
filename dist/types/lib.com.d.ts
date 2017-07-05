@@ -14,4 +14,3 @@ export interface IMiddleware {
     (req: IRequest, res: IResponse, next?: express.NextFunction): void;
 }
 export declare function isUndefined(data: any): boolean;
-export declare function deprecated(message?: string): (instance: any, name: any, descriptor: any) => any;
