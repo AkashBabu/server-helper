@@ -5,7 +5,9 @@ import * as sh_Logger from "logger-switch";
 import * as sh_async from "async";
 import * as express from "express";
 
-export interface IHTTPResp extends express.Response{}
+import { deprecated } from "../lib.com"
+
+export interface IHTTPResp extends express.Response { }
 export interface IValidationFn {
     (data: any, ...args: any[]): (boolean | void)
 }
@@ -13,21 +15,35 @@ export interface IValidationFn {
 export interface ITransformFn extends Function {
     (data: any, ...args: any[]): any
 }
+export interface IPreTransform extends Function {
+    (data: any, ...args: any[]): any
+}
 export interface IFieldSpec {
     name: string;
     type: any;
     required?: boolean;
+    preTransform?: IPreTransform;
+    preTransformArgs?: any[];
     validate?: IValidationFn | IValidationFn[];
     validateArgs?: any[];
     validateErrMsg: string | string[];
     transform: ITransformFn | ITransformFn[];
     transformArgs: any[];
+    unique?: boolean;
     errMsg: string;
 }
 
+export interface IWeakPwd {
+    minLen?: number;
+    maxLen?: number;
+    upperCase?: boolean;
+    lowerCase?: boolean;
+    specialChars?: string[];
+}
+
 export interface IHelper {
-    filterKeysInObj(obj: object, filter: string[]): object;
-    retainKeysInObj(obj: object, filter: string[]): object;
+    filterKeysInObj(obj: object, filter: string[], sameObj?: boolean): object;
+    retainKeysInObj(obj: object, filter: string[], sameObj?: boolean): object;
     weakPwd(pwd: string, config: object): string;
     prefixToQueryObject(prefix: string, obj: object): object;
     validateFieldNamesExistence(obj: object, fieldNames: string[], strict: boolean): boolean;
@@ -50,8 +66,16 @@ export class Helper implements IHelper {
         return this;
     }
 
-    public filterKeysInObj(obj: object, filter: string[]): object {
-        let objCpy = Object.assign({}, obj);
+    /**
+     * Filters out/removes the keys for the given object
+     * @param {object} obj
+     * @param {string[]} filter - array of keys to be removed
+     * @param {boolean=} sameObj - if the keys has to be removed from the same obj or from the copy of it
+     * 
+     * @returns {object} 
+     */
+    public filterKeysInObj(obj: object, filter: string[], sameObj?: boolean): object {
+        let objCpy = sameObj ? obj : Object.assign({}, obj);
         Object.keys(objCpy).forEach((key) => {
             if (filter.indexOf(key) == -1) {
                 delete objCpy[key];
@@ -60,16 +84,42 @@ export class Helper implements IHelper {
 
         return objCpy;
     }
-    public retainKeysInObj(obj: object, retain: string[]): object {
-        let result = {};
-        retain.forEach((key) => {
-            result[key] = obj[key];
-        })
 
-        return result;
+    /**
+     * Retains only the given keys in the object
+     * @param {object} obj
+     * @param {string[]} retain - the keys to be retained
+     * @param {boolean=} sameObj - if the keys has to be removed from the same obj or from the copy of it
+     * 
+     * @returns {object} 
+     */
+    public retainKeysInObj(obj: object, retain: string[], sameObj?: boolean): object {
+        if (sameObj) {
+            Object.keys(obj).forEach((key: string) => {
+                if (retain.indexOf(key) == -1) {
+                    delete obj[key];
+                }
+            })
+            return obj;
+        } else {
+
+            let result = {};
+            retain.forEach((key) => {
+                result[key] = obj[key];
+            })
+
+            return result;
+        }
     }
 
-    public weakPwd(pwd: string, config: object): string {
+    /**
+     * Checks if the given string is a weak password
+     * @param {string} pwd - password
+     * @param {object} config
+     * 
+     * @returns {string} - Errors if any
+     */
+    public weakPwd(pwd: string, config: IWeakPwd): string {
         let error: any;
         pwd = pwd || "";
 
@@ -95,7 +145,13 @@ export class Helper implements IHelper {
         return error;
     }
 
-
+    /**
+     * Prefixes a given string for each keys in the given object
+     * @param {string} prefix - prefix to be attached to each key
+     * @param {object} obj
+     * 
+     * @returns {object} object with prefixed keys
+     */
     public prefixToQueryObject(prefix: string, obj: object): object {
         let query = {};
         Object.keys(obj).forEach((key: string) => {
@@ -104,6 +160,14 @@ export class Helper implements IHelper {
         return query;
     }
 
+    /**
+     * Validate if all the given keys are present in the object
+     * @param {object} obj
+     * @param {string[]} fieldNames - Fields to be verified
+     * @param {boolean} strict - if only the given fields has to be present/ if the object keys should include the given fields
+     * 
+     * @returns {boolean}
+     */
     public validateFieldNamesExistence(obj: object, fieldNames: string[], strict: boolean): boolean {
         if (strict && (Object.keys(obj).length != fieldNames.length)) {
             return false;
@@ -114,234 +178,294 @@ export class Helper implements IHelper {
         })
     }
 
+    /**
+     * Validate the fields in the object in an asynchronous way
+     * @param {object} obj
+     * @param {IFieldSpec[]} fieldSpecs
+     * @param {boolean} [strict=false]
+     * @param {Function} callback
+     */
     public validateFieldsExistenceCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: (err?: string) => void): void {
-        let cbCalled = false
+        if (!callback && typeof strict == "function") {
+            callback = strict;
+            strict = false;
+        }
+
         if (strict == true) {
+            //  Strict rule implementation
             if (Object.keys(obj).length < fieldSpecs.length) {
-                cbCalled = true
-                setImmediate(function () {
+                return setImmediate(function () {
                     callback("Missing Fields");
                 })
             } else if (Object.keys(obj).length > fieldSpecs.length) {
-                this.filterObj(obj, fieldSpecs.map((spec: IFieldSpec) => spec.name));
+                this.filterKeysInObj(obj, fieldSpecs.map((spec: IFieldSpec) => spec.name), true);
             }
 
         }
 
-        if (!cbCalled) {
-            sh_async.eachSeries(
-                fieldSpecs,
-                (fieldSpec: IFieldSpec, cb: Function) => {
-                    let errMsg1 = fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name;
-                    if (!this.isUndefined(obj[fieldSpec.name])) {
+        sh_async.eachSeries(
+            fieldSpecs,
+            (fieldSpec: IFieldSpec, cb: Function) => {
+                let errMsg1 = fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name; // Default errMsg will be 'Invalid <fieldName>'
+                if (!this.isUndefined(obj[fieldSpec.name])) {
 
-                        if (Array.isArray(fieldSpec.type)) {
-                            let validType: boolean = false;
-                            if (fieldSpec.type.indexOf("array") > -1) {
-                                validType = Array.isArray(obj[fieldSpec.name])
-                            }
-                            if (!validType && fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) == -1) {
-                                this.logger.log("Invalid Type:", fieldSpec.name);
-                                return setImmediate(() => {
-                                    cb(errMsg1, false);
-                                });
-                            }
+                    // Type validation block
+                    let validType: boolean = true;
+                    if (Array.isArray(fieldSpec.type)) {
+                        if (fieldSpec.type.indexOf("array") > -1) {
+                            validType = Array.isArray(obj[fieldSpec.name]) || fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) > -1;
+                        }
+                        else {
+                            validType = fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) > -1;
+                        }
 
+                    } else {
+                        if (fieldSpec.type == "array") {
+                            validType = Array.isArray(obj[fieldSpec.name])
                         } else {
-                            let validType: boolean = false;
-                            if (fieldSpec.type == "array") {
-                                validType = Array.isArray(obj[fieldSpec.name])
+                            validType = fieldSpec.type == typeof obj[fieldSpec.name]
+                        }
+
+                    }
+
+                    if (!validType) {
+                        this.logger.log("Invalid Type:", fieldSpec.name);
+                        return setImmediate(() => {
+                            cb(errMsg1, false);
+                        })
+                    }
+
+
+                    if (fieldSpec.preTransform) {
+                        if (fieldSpec.preTransformArgs) {
+                            if (!Array.isArray(fieldSpec.preTransformArgs)) {
+                                fieldSpec.preTransformArgs = [fieldSpec.preTransformArgs];
+                            }
+                        } else {
+                            fieldSpec.preTransformArgs = [];
+                        }
+                        obj[fieldSpec.name] = fieldSpec.preTransform.apply(null, [obj[fieldSpec.name], ...fieldSpec.preTransformArgs])
+                    }
+
+
+                    // ValidateArgs arrangement block
+                    if (!fieldSpec.validateArgs) {
+                        fieldSpec.validateArgs = [];
+                    }
+                    else if (!Array.isArray(fieldSpec.validateArgs)) {
+                        fieldSpec.validateArgs = [fieldSpec.validateArgs];
+                    }
+
+
+                    // validate function arrangement
+                    if (!fieldSpec.validate) {
+                        fieldSpec.validate = [];
+                    }
+                    else if (typeof fieldSpec.validate == "function") {
+                        fieldSpec.validate = [fieldSpec.validate];
+                    }
+
+
+
+                    if (!fieldSpec.validateErrMsg) {
+                        fieldSpec.validateErrMsg = []
+                    } else if (!Array.isArray(fieldSpec.validateErrMsg)) {
+                        fieldSpec.validateErrMsg = [fieldSpec.validateErrMsg];
+                    }
+
+                    let loop = 0;
+                    sh_async.eachSeries(
+                        fieldSpec.validate,
+                        (validate, cb1) => {
+
+                            let errMsg = fieldSpec.validateErrMsg[loop] ? fieldSpec.validateErrMsg[loop] : (fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name);
+
+                            let validateArgs = fieldSpec.validateArgs[loop] || []
+                            loop++;
+                            if (!Array.isArray(validateArgs)) {
+                                validateArgs = [validateArgs]
                             } else {
-                                validType = fieldSpec.type == typeof obj[fieldSpec.name]
+                                validateArgs = validateArgs.slice(0)
                             }
 
-                            if (!validType) {
-                                this.logger.log("Invalid Type:", fieldSpec.name);
-                                return setImmediate(() => {
-                                    cb(errMsg1, false);
-                                })
-                            }
-                        }
+                            validateArgs.unshift(obj[fieldSpec.name])
+                            // validateArgs : [currFieldValue, ...validateArgs]
 
-                        if (!fieldSpec.validateArgs) {
-                            fieldSpec.validateArgs = [];
-                        }
-                        if (!Array.isArray(fieldSpec.validateArgs)) {
-                            fieldSpec.validateArgs = [fieldSpec.validateArgs];
-                        }
-                        if (!fieldSpec.validate) {
-                            fieldSpec.validate = [];
-                        }
-                        if (typeof fieldSpec.validate == "function") {
-                            fieldSpec.validate = [fieldSpec.validate];
-                        }
+                            let argsLen = validateArgs.length;
 
-                        if (!fieldSpec.validateErrMsg) {
-                            fieldSpec.validateErrMsg = []
-                        } else if (!Array.isArray(fieldSpec.validateErrMsg)) {
-                            fieldSpec.validateErrMsg = [fieldSpec.validateErrMsg];
-                        }
-
-                        let loop = 0;
-                        sh_async.eachSeries(
-                            fieldSpec.validate,
-                            (validate, cb1) => {
-
-                                let errMsg = fieldSpec.validateErrMsg[loop] ? fieldSpec.validateErrMsg[loop] : (fieldSpec.errMsg ? fieldSpec.errMsg : "Invalid " + fieldSpec.name);
-
-                                let validateArgs = fieldSpec.validateArgs[loop] || []
-                                loop++;
-                                if (!Array.isArray(validateArgs)) {
-                                    validateArgs = [validateArgs]
-                                } else {
-                                    validateArgs = validateArgs.slice(0)
-                                }
-
-                                validateArgs.unshift(obj[fieldSpec.name])
-
-                                let argsLen = validateArgs.length;
-
-                                if (validate.length > argsLen) {
-                                    let self = this;
-                                    function callback(err, result) {
-                                        if (err) {
-                                            self.logger.log("Validation Failed:", this.name)
-                                            cb1(err, false);
+                            // if cb(async) is implemented for validate function
+                            if (validate.length > argsLen) {
+                                let self = this;
+                                function callback(err, result) {
+                                    if (err) {
+                                        self.logger.log("Validation Failed:", this.name)
+                                        cb1(err, false);
+                                    } else {
+                                        if (result) {
+                                            cb1(null, true);
                                         } else {
-                                            if (result) {
-                                                cb1(null, true);
-                                            } else {
-                                                self.logger.log("Validation Failed:", this.name)
-                                                cb1(errMsg, false);
-                                            }
+                                            self.logger.log("Validation Failed:", this.name)
+                                            cb1(errMsg, false);
                                         }
                                     }
-
-                                    validateArgs.push(callback.bind(fieldSpec));
-                                    validate.apply(null, validateArgs);
-
-                                } else {
-                                    if (!validate.apply(null, validateArgs)) {
-                                        this.logger.log("Validation Failed:", fieldSpec.name);
-                                        setImmediate(() => {
-                                            cb1(errMsg, false);
-                                        })
-                                    } else {
-                                        setImmediate(() => {
-                                            cb1(null, true);
-                                        })
-                                    }
                                 }
-                            },
-                            (err, done) => {
-                                if (err) {
+
+                                validateArgs.push(callback.bind(fieldSpec));
+                                validate.apply(null, validateArgs);
+
+                            } else {
+                                if (!validate.apply(null, validateArgs)) {
+                                    this.logger.log("Validation Failed:", fieldSpec.name);
                                     setImmediate(() => {
-                                        cb(err, false);
+                                        cb1(errMsg, false);
                                     })
                                 } else {
-                                    if (fieldSpec.transform && typeof fieldSpec.transform == "function") {
-                                        if (fieldSpec.transformArgs) {
-                                            fieldSpec.transformArgs.unshift(obj[fieldSpec.name]);
-                                        } else {
-                                            fieldSpec.transformArgs = [obj[fieldSpec.name]];
-                                        }
+                                    setImmediate(() => {
+                                        cb1(null, true);
+                                    })
+                                }
+                            }
+                        },
+                        (err, done) => {
+                            if (err) {
+                                setImmediate(() => {
+                                    cb(err, false);
+                                })
+                            } else {
+                                if (typeof fieldSpec.transform == "function") {
+                                    if (fieldSpec.transformArgs) {
+                                        fieldSpec.transformArgs.unshift(obj[fieldSpec.name]);
+                                    } else {
+                                        fieldSpec.transformArgs = [obj[fieldSpec.name]];
+                                    }
 
-                                        let argsLen = fieldSpec.transformArgs.length;
+                                    let argsLen = fieldSpec.transformArgs.length;
 
-                                        if (fieldSpec.transform.length > argsLen) {
-                                            let self = this;
-                                            function callback(err1, result1) {
-                                                if (err1) {
-                                                    self.logger("Transform Failed:", this.name)
-                                                    cb(err1, false);
+                                    // Check for async(cb) transform functions
+                                    if (fieldSpec.transform.length > argsLen) {
+                                        let self = this;
+                                        function callback(err1, result1) {
+                                            if (err1) {
+                                                self.logger("Transform Failed:", this.name)
+                                                cb(err1, false);
+                                            } else {
+                                                if (result1 != undefined || result1 != null) {
+                                                    obj[fieldSpec.name] = result1;
+                                                    cb(null, true);
                                                 } else {
-                                                    if (result1 != undefined || result1 != null) {
-                                                        obj[fieldSpec.name] = result1;
-                                                        cb(null, true);
-                                                    } else {
-                                                        self.logger("Transform Failed:", this.name)
-                                                        cb(errMsg1, false);
-                                                    }
+                                                    self.logger("Transform Failed:", this.name)
+                                                    cb(errMsg1, false);
                                                 }
                                             }
-
-                                            fieldSpec.transformArgs.push(callback.bind(fieldSpec));
-                                            fieldSpec.transform.apply(null, fieldSpec.transformArgs);
-
-                                        } else {
-                                            obj[fieldSpec.name] = fieldSpec.transform.apply(null, fieldSpec.transformArgs);
-                                            setImmediate(() => {
-                                                cb(null, true);
-                                            })
                                         }
 
+                                        fieldSpec.transformArgs.push(callback.bind(fieldSpec));
+                                        fieldSpec.transform.apply(null, fieldSpec.transformArgs);
 
                                     } else {
+                                        obj[fieldSpec.name] = fieldSpec.transform.apply(null, fieldSpec.transformArgs);
                                         setImmediate(() => {
                                             cb(null, true);
                                         })
                                     }
-                                }
-                            })
 
+
+                                } else {
+                                    setImmediate(() => {
+                                        cb(null, true);
+                                    })
+                                }
+                            }
+                        })
+
+                } else {
+                    if (fieldSpec.required === false) {
+                        setImmediate(() => {
+                            cb(null, true);
+                        })
                     } else {
-                        if (fieldSpec.hasOwnProperty("required") && !fieldSpec.required) {
-                            setImmediate(() => {
-                                cb(null, true);
-                            })
-                        } else {
-                            this.logger.log("Field Not Defined:", fieldSpec.name);
-                            setImmediate(() => {
-                                cb(errMsg1, false);
-                            })
-                        }
+                        this.logger.log("Field Not Defined:", fieldSpec.name);
+                        setImmediate(() => {
+                            cb(errMsg1, false);
+                        })
                     }
-                }, callback)
-        }
+                }
+            }, callback)
     }
-    public validateFieldsExistence(obj: object, fieldSpecs: IFieldSpec[], strict: boolean): boolean {
+
+
+    /**
+     * Validate fields in the object
+     * @param {object} obj
+     * @param {IFieldSpec[]} fieldSpecs
+     * @param {boolean} [strict=false]
+     * 
+     * @returns {boolean} 
+     */
+    public validateFieldsExistence(obj: object, fieldSpecs: IFieldSpec[], strict = false): boolean {
         let self = this;
-        if (self.isUndefined(strict)) {
-            strict = false;
-        }
+
         if (strict) {
             if (Object.keys(obj).length < fieldSpecs.length) {
                 self.logger.log("Missing Fields")
                 return false;
             } else if (Object.keys(obj).length > fieldSpecs.length) {
-                self.filterObj(obj, fieldSpecs.map((spec: IFieldSpec) => spec.name));
+                self.filterObj(obj, fieldSpecs.map((spec: IFieldSpec) => spec.name), true);
             }
 
         }
 
         return fieldSpecs.every((fieldSpec: IFieldSpec) => {
             if (!self.isUndefined(obj[fieldSpec.name])) {
+
+                // Type validation
                 if (fieldSpec.type) {
-                    if (fieldSpec.type.constructor == Array) {
-                        if (fieldSpec.type.indexOf(obj[fieldSpec.name].constructor) == -1) {
-                            self.logger.log("Invalid Type:", fieldSpec.name, ", required to be:", fieldSpec.type);
-                            return false;
+                    let validType = true;
+                    if (Array.isArray(fieldSpec.type)) {
+                        if (fieldSpec.type.indexOf("array") > -1) {
+                            validType = Array.isArray(obj[fieldSpec.name]) || fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) > -1;
+                        } else {
+                            validType = fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) > -1;
                         }
-                    } else if (obj[fieldSpec.name].constructor != fieldSpec.type) {
-                        self.logger.log("Invalid Type:", fieldSpec.name, ", required to be:", fieldSpec.type);
+                    } else {
+                        validType = typeof obj[fieldSpec.name] == fieldSpec.type;
+                    }
+
+                    if (!validType) {
+                        this.logger.log(`Invalid Type: ${fieldSpec.name}, expected to be ${fieldSpec.type}`);
                         return false;
                     }
                 }
 
+                // Pre-Transformation
+                if (fieldSpec.preTransform) {
+                    if (!fieldSpec.preTransformArgs) {
+                        fieldSpec.preTransformArgs = [];
+                    } else if (!Array.isArray(fieldSpec.preTransformArgs)) {
+                        fieldSpec.preTransformArgs = [fieldSpec.preTransformArgs];
+                    }
+                    fieldSpec.preTransformArgs.unshift(obj[fieldSpec.name]);
+
+                    obj[fieldSpec.name] = fieldSpec.preTransform.apply(null, fieldSpec.preTransformArgs);
+                }
+
+                // Validation
                 if (fieldSpec.validate) {
+
+                    if (!fieldSpec.validateArgs) {
+                        fieldSpec.validateArgs = [];
+                    }
+                    else if (!Array.isArray(fieldSpec.validateArgs)) {
+                        fieldSpec.validateArgs = [fieldSpec.validateArgs]
+                    }
 
                     if (!Array.isArray(fieldSpec.validate)) {
                         fieldSpec.validate = [fieldSpec.validate]
                     }
-                    if (!fieldSpec.validateArgs) {
-                        fieldSpec.validateArgs = [];
-                    }
-                    if (fieldSpec.validateArgs.constructor != Array) {
-                        fieldSpec.validateArgs = [fieldSpec.validateArgs]
-                    }
+
 
                     let valid = fieldSpec.validate.every((validation, i) => {
-                        if (fieldSpec.validateArgs[i] && fieldSpec.validateArgs[i].constructor != Array) {
+                        if (fieldSpec.validateArgs[i] && !Array.isArray(fieldSpec.validateArgs[i])) {
                             fieldSpec.validateArgs[i] = [fieldSpec.validateArgs[i]]
                         }
                         let validateArgs = fieldSpec.validateArgs[i] || [];
@@ -355,17 +479,18 @@ export class Helper implements IHelper {
                     }
 
                 }
-                if (fieldSpec.transform && typeof fieldSpec.transform == "function") {
-                    if (fieldSpec.transformArgs) {
-                        if (!Array.isArray(fieldSpec.transformArgs)) {
-                            fieldSpec.transformArgs = [fieldSpec.transformArgs];
-                        }
 
-                        fieldSpec.transformArgs.unshift(obj[fieldSpec.name]);
-                        obj[fieldSpec.name] = fieldSpec.transform.apply(null, fieldSpec.transformArgs);
-                    } else {
-                        obj[fieldSpec.name] = fieldSpec.transform(obj[fieldSpec.name]);
+
+                // Transformation
+                if (fieldSpec.transform && typeof fieldSpec.transform == "function") {
+                    if (!fieldSpec.transformArgs) {
+                        fieldSpec.transformArgs = [];
+                    } else if (!Array.isArray(fieldSpec.transformArgs)) {
+                        fieldSpec.transformArgs = [fieldSpec.transformArgs];
                     }
+                    fieldSpec.transformArgs.unshift(obj[fieldSpec.name]);
+
+                    obj[fieldSpec.name] = fieldSpec.transform.apply(null, fieldSpec.transformArgs);
                 }
 
                 return true;
@@ -376,6 +501,14 @@ export class Helper implements IHelper {
             }
         })
     }
+
+    /**
+     * Converts the given string to hash, by adding a suffixing salt of length(length) to the password
+     * @param {string} pwd
+     * @param {number} [saltLength=16] - length of salt to be used
+     * 
+     * @returns {string}
+     */
     public saltHash(pwd: string, saltLength?: number): string {
         let salt = this.chance.string({
             length: saltLength || 16,
@@ -383,6 +516,15 @@ export class Helper implements IHelper {
         });
         return salt + sh_crypto.createHmac("sha256", salt).update(pwd).digest("hex")
     }
+
+    /**
+     * Verifies the given password with the salted password
+     * @param {string} salted
+     * @param {string} pwd
+     * @param {number} saltLength
+     * 
+     * @returns {boolean}
+     */
     public verifySaltHash(salted: string, pwd: string, saltLength?: number): boolean {
         saltLength = saltLength || 16
         let hashed = {
@@ -393,7 +535,13 @@ export class Helper implements IHelper {
         let thisHash = sh_crypto.createHmac("sha256", hashed.salt).update(pwd).digest("hex");
         return (hashed.hash == thisHash);
     }
+
+    /**
+     * @deprecated since version 0.11.0
+     */
     public handleResult(res: IHTTPResp, err: Error, result: any, type?: string): void {
+        console.warn("Please use HelperResp.handleResult instead. This function will be deprecated in the next major release");
+        
         if (!type) {
             type = "array"
         }
