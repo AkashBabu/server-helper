@@ -1,0 +1,99 @@
+html {
+    padding: 0;
+    margin: 0;
+}
+
+.scroll {
+    overflow: auto;
+}
+
+.cursor {
+    cursor: pointer;
+}
+
+.sidenav-list {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.sidenav-list.root>li {
+    margin-bottom: 0.3rem;
+}
+
+.sidenav-list li {
+    cursor: pointer;
+    padding: 0.2rem 0.2rem 0.2rem 0.5rem;
+}
+
+
+.sidenav-list.root {
+
+}
+
+.sidenav-list.sub-module-list  {
+
+}
+
+.sidenav-list.method-list {
+
+}
+
+/*Main Module heading*/
+.sidenav-list.root>li>span {
+    font-size: 105%;
+    font-weight: 500;
+}
+
+/*Sub-Module Heading*/
+.sidenav-list.sub-module-list>li>span {
+
+}
+
+.sidenav-list.method-list>li {
+    font-size: 90%;
+}
+
+.sidenav-list li>span:hover {
+    color: lightgrey;
+}
+
+.sidenav-list .leaf:hover {
+    background-color: black;
+    color: white;
+}
+
+.module-details {
+    padding: 0 1rem;
+    /*margin: 0 auto;*/
+}
+.module-details .initial {}
+.module-details .initial .desc {}
+
+.method {
+    margin: 2rem 0 3rem 0;
+    /*margin: 0 auto;*/
+}
+
+.method .name {
+    padding: 0.5rem;
+    margin-top: 0;
+}
+.method .desc {}
+
+.method .param-list {}
+
+.method .param-list .param {}
+
+.method .param-list .param .name {}
+.method .param-list .param .desc {}
+
+.method .return .type{}
+.method .return .desc{}
+
+.method .example {}
+
+
+.param-list {
+    
+}

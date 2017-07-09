@@ -1,12 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Server-Helper</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-        Server Helper
-    </body>
+<html lang="en" ng-app="app">
+
+<head>
+    <title>Server-Helper</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body layout="row" ng-cloak ng-controller="navCtrl as ctrl">
+    <div md-whiteframe="5" flex=80 flex-gt-sm="20" layout="column" layout-align="start center" class="scroll side-nav" ng-show="ctrl.showSidenav">
+        <md-toolbar class="md-primary" layout-align="center center">
+            <span class="md-display-1">Server-Helper</span>
+        </md-toolbar>
+
+        <md-content flex layout-fill>
+
+            <ul class="sidenav-list root">
+                
+                <li ng-repeat="(heading, info) in ctrl.content" ng-init="info.showMenu = false">
+                    <span ng-click="info.showMenu = !info.showMenu" ng-bind="heading"></span>
+
+                    <div ng-switch="!!info.subModules">
+                   
+                        <div ng-switch-when="true">
+                            <ul class="sidenav-list sub-module-list" ng-show="info.showMenu">
+                               
+                                <li ng-repeat="(subHeading, subInfo) in info.subModules" ng-init="subInfo.showMenu = false">
+                                    <span ng-bind="subHeading" ng-click="subInfo.showMenu =! subInfo.showMenu"></span>
+                        
+                                    <ul class="sidenav-list method-list" ng-show="subInfo.showMenu">
+                                        <li ng-repeat="method in subInfo.methods" ng-bind="method.nav" ng-click="ctrl.navigateTo(method.id)"></li>
+                                    </ul>
+
+                                </li>
+                            </ul>
+                        </div>
+                   
+                        <div ng-switch-when="false">
+                            <ul class="sidenav-list method-list" ng-show="info.showMenu">
+                                <li ng-repeat="method in info.methods" ng-bind="method.nav" ng-click="ctrl.navigateTo(method.id)">
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </md-content>
+    </div>
+    <div flex layout="column" layout-align="start start" ng-controller="contentCtrl as vm">
+
+        <md-toolbar md-colors="::{background: 'default-pink-50-0.3'}" layout="row" layout-align="space-between center">
+            
+            <md-icon flex md-colors="::{color: 'default-grey-900-1'}" class="material-icons cursor" ng-click="ctrl.toggleSidenav()">menu</md-icon>
+            <div flex layout="row" layout-align="center center">
+                <span class="md-headline" ng-bind="vm.contentHeading"></span>
+            </div>
+            <span flex>&nbsp;</span>
+        
+        </md-toolbar>
+
+        <md-content class="module-details" layout-fill layout="column" layout-align="start space-around" flex>
+            
+            <div class="initial">
+                <p class="desc" ng-bind="vm.currContent.desc"></p>
+                <pre><code class="language-javascript" ng-bind="vm.currContent.initialCode"></code></pre>
+            </div>
+            
+            <div class="method" ng-repeat="method in vm.methods" id="{{method.id}}">
+                
+                <md-subheader class="name" ng-bind="method.name"></md-subheader>
+                <p class="desc" ng-bind="method.desc"></p>
+                
+                <div class="param-list" layout="column" layout-align="start start" layout-padding>
+                    <span class="param" ng-repeat="param in method.params">
+                    <span class="name" ng-bind="param.name"></span> - 
+                    <span class="desc" ng-bind="param.desc"></span>
+                    </span>
+                </div>
+
+                <div class="return">
+                    <span class="type" ng-bind="method.return.type"></span>
+                    <span class="desc" ng-bind="method.return.desc"></span>
+                </div>
+                
+                <div class="example">
+                    <pre><code class="language-javascript" ng-bind="method.example"></code></pre>
+                </div>
+            
+            </div>
+        </md-content>
+    </div>
+
+    <script type="application/javascript" src='build/bundle.js' charset='utf-8'></script>
+</body>
+
 </html>

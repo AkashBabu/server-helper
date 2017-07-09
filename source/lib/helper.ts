@@ -5,8 +5,6 @@ import * as sh_Logger from "logger-switch";
 import * as sh_async from "async";
 import * as express from "express";
 
-import { deprecated } from "../lib.com"
-
 export interface IHTTPResp extends express.Response { }
 export interface IValidationFn {
     (data: any, ...args: any[]): (boolean | void)
@@ -44,7 +42,7 @@ export interface IWeakPwd {
 export interface IHelper {
     filterKeysInObj(obj: object, filter: string[], sameObj?: boolean): object;
     retainKeysInObj(obj: object, filter: string[], sameObj?: boolean): object;
-    weakPwd(pwd: string, config: object): string;
+    weakPwd(pwd: string, config: IWeakPwd): string;
     prefixToQueryObject(prefix: string, obj: object): object;
     validateFieldNamesExistence(obj: object, fieldNames: string[], strict: boolean): boolean;
     validateFieldsExistenceCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: Function): void;
