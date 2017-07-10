@@ -6,7 +6,7 @@
     "url": "https://github.com/AkashBabu/server-helper/issues"
   },
   "dependencies": {
-    "async": "^2.1.2",
+    "async": "^2.5.0",
     "chance": "^1.0.4",
     "connect-redis": "^3.3.0",
     "express-session": "^1.14.2",
@@ -14,6 +14,7 @@
     "logger-switch": "^3.0.1",
     "moment": "^2.18.1",
     "mongojs": "^2.4.0",
+    "package.json": "^2.0.1",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "string": "^3.3.3"
@@ -27,6 +28,7 @@
     "angular-messages": "^1.6.5",
     "angular-route": "^1.6.5",
     "angular-route-segment": "^1.5.1",
+    "angular-scroll": "^1.0.2",
     "autoprefixer-loader": "^3.2.0",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
@@ -42,7 +44,7 @@
     "morgan": "^1.8.2",
     "prismjs": "^1.6.0",
     "style-loader": "^0.18.2",
-    "webpack": "^3.0.0"
+    "webpack": "^3.1.0"
   },
   "dist": {
     "shasum": "ca7a3a1c079bb2a5c8f276cbe68938ce42683c46",

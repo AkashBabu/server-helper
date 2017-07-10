@@ -1,48 +1,49 @@
 module.exports = function (app) {
-    app.controller("navCtrl", ["$mdSidenav", "$mdMedia", "$scope", "contentService", function ($mdSidenav, $mdMedia, $scope, contentService) {
-        var ctrl = this;
+    app
+        .value('duScrollDuration', 2000)
+        .value('duScrollOffset', 30)
 
-        ctrl.content = contentService.content;
-        console.log('navCtrl content:', ctrl.content);
+    app.controller("appCtrl", ["$mdSidenav", "$mdMedia", "$scope", "$document", "$timeout", "contentService", function ($mdSidenav, $mdMedia, $scope, $document, $timeout, contentService) {
+        var vm = this;
 
-        ctrl.showSidenav = $mdMedia("gt-sm");
+        vm.content = contentService.content;
 
-        ctrl.toggleSidenav = () => {
-            ctrl.showSidenav = !ctrl.showSidenav;
+        vm.showSidenav = $mdMedia("gt-sm");
+
+        vm.isString = (data) => {
+            return typeof data == 'string';
         }
 
-        ctrl.navigateTo = function(location) {
+        vm.toggleSidenav = () => {
+            vm.showSidenav = !vm.showSidenav;
+        }
+
+        vm.changeContent = (heading) => {
+            vm.currHeading = heading;
+            vm.currContent = vm.content[vm.currHeading]
+        }
+
+        vm.navigateTo = (location) => {
             console.log('navigating to:', location);
+            $timeout(() => {
+                var navEl = angular.element(document.getElementById(location));
+
+                $document.duScrollToElement(navEl, 30, 1000);
+                // $document.scrollToElementAnimated(navEl);
+            }, 10)
         }
 
         $scope.$watch(() => {
             return !$mdMedia("gt-sm")
         }, (newVal) => {
             if (newVal) {
-                ctrl.showSidenav = false;
+                vm.showSidenav = false;
             } else {
-                ctrl.showSidenav = true;
+                vm.showSidenav = true;
             }
         })
+
+
+        vm.changeContent("Helper")
     }])
-        .controller("contentCtrl", ["contentService", function (contentService) {
-            var vm = this;
-
-            vm.methods = [];
-
-            vm.content = contentService.content;
-
-            // parseContent(vm.content);
-            // function parseContent(content) {
-            //     var rootModules = Object.keys(vm.content).map((key) => {
-
-            //     })
-            //     rootModules
-            // }
-
-            vm.contentHeading = "Helper"
-            vm.methods = vm.content[vm.contentHeading].methods;
-            vm.currContent = vm.content[vm.contentHeading];
-
-        }])
 }

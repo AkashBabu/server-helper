@@ -9,7 +9,7 @@ var helper = new Helper();
                     `,
                 methods: [
                     {
-                        id: 'helper.filterKeysInObj',
+                        id: 'filterKeysInObj',
                         name: 'filterKeysInObj(obj: string, filter: string[], sameObj?: boolean)  => object',
                         nav: 'filterKeysInObj',
                         returns: {
@@ -42,7 +42,7 @@ console.log(obj) // {c: 1}
                     `
                     },
                     {
-                        id: 'helper.retainKeysInObj',
+                        id: 'retainKeysInObj',
                         name: 'retainKeysInObj(obj: string, retain: string[], sameObj?: boolean)',
                         nav: 'retainKeysInObj',
                         return: {
@@ -75,7 +75,7 @@ console.log(obj) // {a: 1, b: 1}
                     `
                     },
                     {
-                        id: 'helper.weakPwd',
+                        id: 'weakPwd',
                         name: 'weakPwd(password: string, config: object) => string',
                         nav: 'weakPassword',
                         return: {
@@ -96,58 +96,50 @@ console.log(obj) // {a: 1, b: 1}
                             }
                         ],
                         desc: `Checks if the given string is a weak password`,
-                        example: `
+                        example: [`
 var Helper = require("server-helper").Helper
-                    `
+                    `, `
+var helper = another.line;                    
+                    `]
                     },
-                    {
-                        id: 'helper.filterKeysInObj',
-                        name: 'filterKeysInObj(obj: string, filter: string[], sameObj?: boolean)',
-                        nav: 'filterKeysInObj',
-                        returns: 'object',
+                ]
+            },
+            "Session-JWT": {
+                methods: [{
+                        id: 'login',
+                        name: 'login(password: string, config: object) => string',
+                        nav: 'login',
+                        return: {
+                            type: 'string',
+                            desc: 'Returns if the given string does not satisfy the conditions specified in the config object'
+                        },
                         params: [
                             {
-                                name: 'obj',
-                                desc: ''
+                                name: 'password',
+                                desc: 'String to check for weak password'
                             }, {
-                                name: 'filter',
-                                desc: ''
+                                name: 'config',
+                                desc: 'Object'
                             }, {
                                 name: 'sameObj',
                                 optional: true,
                                 desc: ''
                             }
                         ],
-                        desc: `lknpoqwiuhfenkjlsd
-                    <script> alert("js in side worked out")</script>
-                    asdf
-                    asd
-                    f
-                    asdf
-                    <asdf> asdf asdf asdf asdf asd fasd fasd fas dfas dfas dfasdf asdf asdf asdf asd fasd fasd fas dfas dfas dfasdf asdf asdf asdf asd fasd fasd fas dfas dfas dfasdf asdf asdf asdf asd fasd fasd fas dfas dfas dfasdf asdf asdf asdf asd fasd fasd fas dfas dfas dfasdf asdf asdf asdf asd fasd fasd fas dfas dfas dfasdf asdf asdf asdf asd fasd fasd fas dfas dfas df`,
-                        example: `
+                        desc: `Checks if the given string is a weak password`,
+                        example: [`
 var Helper = require("server-helper").Helper
-                    `
-                    },
-                ]
+                    `, `
+var helper = another.line;                    
+                    `]
+                    },]
             },
-            "Session": {
-                "subModules": {
-                    "JWT": {
-                        methods: [{
-                            name: 'Test1',
-                            id: 'session.jwt.test1',
-                            nav: 'test1'
-                        }]
-                    },
-                    "Cookie": {
-                        methods: [{
-                            name: 'Test1',
-                            id: 'session.jwt.test1',
-                            nav: 'test1'
-                        }]
-                    }
-                }
+            "Session-Cookie": {
+                methods: [{
+                    name: 'Test1',
+                    id: 'session.jwt.test1',
+                    nav: 'test1'
+                }]
             }
         }
     }])
