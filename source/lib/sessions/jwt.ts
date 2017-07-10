@@ -49,8 +49,8 @@ export class JWT implements IJWT {
                             this.logger.error(err);
                         }
 
-                        err ? this.helperResp.serverError(res) : 
-                        this.helperResp.unauth(res, "Invalid Credentials");
+                        err ? this.helperResp.serverError(res) :
+                            this.helperResp.unauth(res, "Invalid Credentials");
                     }
                 }
             }

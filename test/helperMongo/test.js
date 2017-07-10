@@ -1,6 +1,6 @@
 /// <reference path="../../typings/index.d.ts" />
 
-var {HelperMongo} = require("../../dist/index")
+var { HelperMongo } = require("../../dist/index")
 var connStr = "sh_test"
 var helperMongo = new HelperMongo(connStr, true);
 var mongojs = require('mongojs')
@@ -18,12 +18,13 @@ describe("HelperMongo", () => {
         db.collection(userColl).remove({}, done)
     })
 
-    after((done) => {
+    after(function (done) {
+        this.timeout(5000);
         db.dropDatabase(done)
     })
 
-    describe.skip("#getDateFormat()", () => {
-        
+    describe("#getDateFormat()", () => {
+
         beforeEach(done => {
             db.collection(userColl).remove({}, done)
         })
@@ -35,7 +36,7 @@ describe("HelperMongo", () => {
                 cTime: date
             }
 
-            db.collection(userColl).insert(user, function(err, result) {
+            db.collection(userColl).insert(user, function (err, result) {
                 if (result) {
                     db.collection(userColl).aggregate([{
                         $project: {
@@ -46,7 +47,7 @@ describe("HelperMongo", () => {
                                 }
                             }
                         }
-                    }], function(err, result) {
+                    }], function (err, result) {
                         result.should.be.an("array")
                         result.length.should.be.eql(1)
                         result[0].year.should.be.eql(moment(date).add(diffHour, 'hour').format("YYYY"))
@@ -65,7 +66,7 @@ describe("HelperMongo", () => {
                 cTime: date
             }
 
-            db.collection(userColl).insert(user, function(err, result) {
+            db.collection(userColl).insert(user, function (err, result) {
                 if (result) {
                     db.collection(userColl).aggregate([{
                         $project: {
@@ -76,7 +77,7 @@ describe("HelperMongo", () => {
                                 }
                             }
                         }
-                    }], function(err, result) {
+                    }], function (err, result) {
                         result.should.be.an("array")
                         result.length.should.be.eql(1)
                         result[0].year.should.be.eql(moment(date).add(diffHour, 'hour').format("YYYY-MM"))
@@ -89,13 +90,13 @@ describe("HelperMongo", () => {
             })
         })
         it("should return Day format", (done) => {
-           var date = new Date();
+            var date = new Date();
             var user = {
                 name: 'Akash',
                 cTime: date
             }
 
-            db.collection(userColl).insert(user, function(err, result) {
+            db.collection(userColl).insert(user, function (err, result) {
                 if (result) {
                     db.collection(userColl).aggregate([{
                         $project: {
@@ -106,7 +107,7 @@ describe("HelperMongo", () => {
                                 }
                             }
                         }
-                    }], function(err, result) {
+                    }], function (err, result) {
                         result.should.be.an("array")
                         result.length.should.be.eql(1)
                         result[0].year.should.be.eql(moment(date).add(diffHour, 'hour').format("YYYY-MM-DD"))
@@ -119,13 +120,13 @@ describe("HelperMongo", () => {
             })
         })
         it("should return Hour format", (done) => {
-           var date = new Date();
+            var date = new Date();
             var user = {
                 name: 'Akash',
                 cTime: date
             }
 
-            db.collection(userColl).insert(user, function(err, result) {
+            db.collection(userColl).insert(user, function (err, result) {
                 if (result) {
                     db.collection(userColl).aggregate([{
                         $project: {
@@ -136,7 +137,7 @@ describe("HelperMongo", () => {
                                 }
                             }
                         }
-                    }], function(err, result) {
+                    }], function (err, result) {
                         result.should.be.an("array")
                         result.length.should.be.eql(1)
                         result[0].year.should.be.eql(moment(date).add(diffHour, 'hour').format("YYYY-MM-DDTHH"))
@@ -149,13 +150,13 @@ describe("HelperMongo", () => {
             })
         })
         it("should return Minute format", (done) => {
-           var date = new Date();
+            var date = new Date();
             var user = {
                 name: 'Akash',
                 cTime: date
             }
 
-            db.collection(userColl).insert(user, function(err, result) {
+            db.collection(userColl).insert(user, function (err, result) {
                 if (result) {
                     db.collection(userColl).aggregate([{
                         $project: {
@@ -166,7 +167,7 @@ describe("HelperMongo", () => {
                                 }
                             }
                         }
-                    }], function(err, result) {
+                    }], function (err, result) {
                         result.should.be.an("array")
                         result.length.should.be.eql(1)
                         result[0].year.should.be.eql(moment(date).add(diffHour, 'hour').format("YYYY-MM-DDTHH:mm"))
@@ -179,13 +180,13 @@ describe("HelperMongo", () => {
             })
         })
         it("should return Second format", (done) => {
-           var date = new Date();
+            var date = new Date();
             var user = {
                 name: 'Akash',
                 cTime: date
             }
 
-            db.collection(userColl).insert(user, function(err, result) {
+            db.collection(userColl).insert(user, function (err, result) {
                 if (result) {
                     db.collection(userColl).aggregate([{
                         $project: {
@@ -196,7 +197,7 @@ describe("HelperMongo", () => {
                                 }
                             }
                         }
-                    }], function(err, result) {
+                    }], function (err, result) {
                         result.should.be.an("array")
                         result.length.should.be.eql(1)
                         result[0].year.should.be.eql(moment(date).add(diffHour, 'hour').format("YYYY-MM-DDTHH:mm:ss"))
@@ -209,13 +210,13 @@ describe("HelperMongo", () => {
             })
         })
         it("should return Millisecond format", (done) => {
-           var date = new Date();
+            var date = new Date();
             var user = {
                 name: 'Akash',
                 cTime: date
             }
 
-            db.collection(userColl).insert(user, function(err, result) {
+            db.collection(userColl).insert(user, function (err, result) {
                 if (result) {
                     db.collection(userColl).aggregate([{
                         $project: {
@@ -226,7 +227,7 @@ describe("HelperMongo", () => {
                                 }
                             }
                         }
-                    }], function(err, result) {
+                    }], function (err, result) {
                         result.should.be.an("array")
                         result.length.should.be.eql(1)
                         result[0].year.should.be.eql(moment(date).add(diffHour, 'hour').format("YYYY-MM-DDTHH:mm:ss.SSS"))
@@ -239,13 +240,13 @@ describe("HelperMongo", () => {
             })
         })
         it("should return Day format by default", (done) => {
-           var date = new Date();
+            var date = new Date();
             var user = {
                 name: 'Akash',
                 cTime: date
             }
 
-            db.collection(userColl).insert(user, function(err, result) {
+            db.collection(userColl).insert(user, function (err, result) {
                 if (result) {
                     db.collection(userColl).aggregate([{
                         $project: {
@@ -256,7 +257,7 @@ describe("HelperMongo", () => {
                                 }
                             }
                         }
-                    }], function(err, result) {
+                    }], function (err, result) {
                         result.should.be.an("array")
                         result.length.should.be.eql(1)
                         result[0].year.should.be.eql(moment(date).add(diffHour, 'hour').format("YYYY-MM-DD"))
@@ -272,12 +273,12 @@ describe("HelperMongo", () => {
 
     describe("#validateExistence()", () => {
         it("should return true if atleast one document was found for the given query", done => {
-            var data = { 
+            var data = {
                 name: "test"
             }
             db.collection("validateExistenceColl").insert(data, (err, result) => {
-                if(result) {
-                    helperMongo.validateExistence("validateExistenceColl", {name: "test"}, (err, result) => {
+                if (result) {
+                    helperMongo.validateExistence("validateExistenceColl", { name: "test" }, (err, result) => {
 
                         should.not.exist(err);
                         result.should.be.ok;
@@ -293,7 +294,7 @@ describe("HelperMongo", () => {
 
     describe("#validateNonExistence()", () => {
         it("should return true  if there was no document found for the given query", (done) => {
-            helperMongo.validateNonExistence('validateNonExistence1', {name: 'test'}, (err, result) => {
+            helperMongo.validateNonExistence('validateNonExistence1', { name: 'test' }, (err, result) => {
                 should.not.exist(err)
                 result.should.be.ok;
 
@@ -301,12 +302,12 @@ describe("HelperMongo", () => {
             })
         })
         it("should return 'Duplicate Document' if there was a document found for the given query and no Err Msg was specified", (done) => {
-            var data  = {
+            var data = {
                 name: 'test'
             }
             db.collection('validateNonExistence2').insert(data, (err, result) => {
-                if(!err) {
-                    helperMongo.validateNonExistence('validateNonExistence2', {name: 'test'}, (err1, result1) => {
+                if (!err) {
+                    helperMongo.validateNonExistence('validateNonExistence2', { name: 'test' }, (err1, result1) => {
                         should.exist(err1);
                         err1.should.be.eql("Duplicate Document")
                         should.not.exist(result1)
@@ -321,14 +322,14 @@ describe("HelperMongo", () => {
             })
         })
         it("should return errMsg  if atleast one document was found for the given query and errMsg was given", (done) => {
-            var data  = {
+            var data = {
                 name: 'test'
             }
             db.collection('validateNonExistence').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.validateNonExistence('validateNonExistence', {
-                      query:  {name: 'test'},
-                      errMsg: "Duplicate Name"
+                        query: { name: 'test' },
+                        errMsg: "Duplicate Name"
                     }, (err1, result1) => {
                         should.exist(err1);
                         err1.should.be.eql("Duplicate Name")
@@ -355,7 +356,7 @@ describe("HelperMongo", () => {
             }
 
             db.collection('validateNonExistence').insert([data1, data2], (err, result) => {
-                if(!err) {
+                if (!err) {
                     let validations = [
                         {
                             query: {
@@ -388,7 +389,7 @@ describe("HelperMongo", () => {
 
     describe("#validateNonExistenceOnUpdate()", () => {
         it("should validate _id for a valid mongo id", (done) => {
-            helperMongo.validateNonExistenceOnUpdate('validateNonExistenceOnUpdate1', {_id: "asdf"}, {}, (err, result) => {
+            helperMongo.validateNonExistenceOnUpdate('validateNonExistenceOnUpdate1', { _id: "asdf" }, {}, (err, result) => {
                 should.exist(err);
                 err.should.be.eql("Invalid Id");
 
@@ -406,7 +407,7 @@ describe("HelperMongo", () => {
             }
             db.collection("validateNonExistenceOnUpdate2").insert([data1, data2], (err, result) => {
                 // console.log(`result:`, result[0]);
-                if(!err) {  
+                if (!err) {
                     var validations = [
                         {
                             name: "name"
@@ -420,7 +421,7 @@ describe("HelperMongo", () => {
 
                         done()
                     })
-                    
+
                 } else {
                     console.error('Failed to insert into    validateNonExistenceOnUpdate2')
                     done(err);
@@ -438,7 +439,7 @@ describe("HelperMongo", () => {
             }
             db.collection("validateNonExistenceOnUpdate3").insert([data1, data2], (err, result) => {
                 // console.log(`result:`, result[0]);
-                if(!err) {  
+                if (!err) {
                     var validations = [
                         {
                             name: "name"
@@ -453,7 +454,7 @@ describe("HelperMongo", () => {
 
                         done()
                     })
-                    
+
                 } else {
                     console.error('Failed to insert into    validateNonExistenceOnUpdate3')
                     done(err)
@@ -467,7 +468,7 @@ describe("HelperMongo", () => {
                 name: 'test2'
             }]
             db.collection('validateNonExistenceOnUpdate4').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     result[0].name = 'test2'
                     var validations = [
                         {
@@ -503,12 +504,12 @@ describe("HelperMongo", () => {
                 done();
             })
         })
-        it("should return the document if a document is present for the given _id", (done) =>  {
+        it("should return the document if a document is present for the given _id", (done) => {
             var data = {
                 name: 'test'
             }
             db.collection("getById2").insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getById("getById2", result._id, (err, result1) => {
                         should.not.exist(err);
                         result1._id.should.be.eql(result._id);
@@ -534,11 +535,11 @@ describe("HelperMongo", () => {
                 num: 10
             }]
 
-            db.collection("getMaxValue1").insert(data, (err, result ) => {
-                if(!err) {
+            db.collection("getMaxValue1").insert(data, (err, result) => {
+                if (!err) {
                     var maxQuery = {
                         query: {
-                            num: {$exists: true}
+                            num: { $exists: true }
                         },
                         key: 'num'
                     }
@@ -559,16 +560,16 @@ describe("HelperMongo", () => {
                 arr: [
                     {
                         num: 1
-                    },{
+                    }, {
                         num: 2
-                    },{
+                    }, {
                         num: 10
                     }
                 ]
             }]
 
             db.collection("getMaxValue2").insert(data, (err) => {
-                if(!err) {
+                if (!err) {
                     var maxQuery = {
                         query: {
                             name: 'test1'
@@ -595,19 +596,19 @@ describe("HelperMongo", () => {
             var data = [
                 {
                     num: 1
-                },{
+                }, {
                     num: 2
-                },{
+                }, {
                     num: 10
                 },
             ]
             db.collection("getNextSeqNo1").insert(data, (err) => {
-                if(!err) {
+                if (!err) {
                     var nextSeqQuery = {
                         // query: {},
                         key: 'num'
                     }
-                    helperMongo.getNextSeqNo('getNextSeqNo1', nextSeqQuery, (err, result ) => {
+                    helperMongo.getNextSeqNo('getNextSeqNo1', nextSeqQuery, (err, result) => {
                         should.not.exist(err);
                         result.should.be.eql(11);
 
@@ -623,20 +624,20 @@ describe("HelperMongo", () => {
             var data = [
                 {
                     num: 1
-                },{
+                }, {
                     num: 2
-                },{
+                }, {
                     num: 10
                 },
             ]
             db.collection("getNextSeqNo2").insert(data, (err) => {
-                if(!err) {
+                if (!err) {
                     var nextSeqQuery = {
                         // query: {},
                         key: 'num',
                         maxValue: 11
                     }
-                    helperMongo.getNextSeqNo('getNextSeqNo2', nextSeqQuery, (err, result ) => {
+                    helperMongo.getNextSeqNo('getNextSeqNo2', nextSeqQuery, (err, result) => {
                         should.not.exist(err);
                         result.should.be.eql(11);
 
@@ -652,20 +653,20 @@ describe("HelperMongo", () => {
             var data = [
                 {
                     num: 1
-                },{
+                }, {
                     num: 2
-                },{
+                }, {
                     num: 10
                 },
             ]
             db.collection("getNextSeqNo3").insert(data, (err) => {
-                if(!err) {
+                if (!err) {
                     var nextSeqQuery = {
                         // query: {},
                         key: 'num',
                         maxValue: 10
                     }
-                    helperMongo.getNextSeqNo('getNextSeqNo3', nextSeqQuery, (err, result ) => {
+                    helperMongo.getNextSeqNo('getNextSeqNo3', nextSeqQuery, (err, result) => {
                         should.not.exist(err);
                         result.should.be.eql(3);
 
@@ -681,21 +682,21 @@ describe("HelperMongo", () => {
             var data = [
                 {
                     num: 1
-                },{
+                }, {
                     num: 2
-                },{
+                }, {
                     num: 3
                 },
             ]
             db.collection("getNextSeqNo4").insert(data, (err) => {
-                if(!err) {
+                if (!err) {
                     var nextSeqQuery = {
                         // query: {},
                         key: 'num',
                         maxValue: 3,
                         minValue: 1
                     }
-                    helperMongo.getNextSeqNo('getNextSeqNo4', nextSeqQuery, (err, result ) => {
+                    helperMongo.getNextSeqNo('getNextSeqNo4', nextSeqQuery, (err, result) => {
                         should.exist(err);
                         err.should.be.eql("Could not Get Next Sequence Number")
 
@@ -711,14 +712,14 @@ describe("HelperMongo", () => {
             var data = [
                 {
                     num: 1
-                },{
+                }, {
                     num: 2
-                },{
+                }, {
                     num: 3
                 },
             ]
             db.collection("getNextSeqNo5").insert(data, (err) => {
-                if(!err) {
+                if (!err) {
                     var nextSeqQuery = {
                         // query: {},
                         key: 'num',
@@ -726,7 +727,7 @@ describe("HelperMongo", () => {
                         minValue: 1,
                         errMsg: "No SeqNo Available"
                     }
-                    helperMongo.getNextSeqNo('getNextSeqNo5', nextSeqQuery, (err, result ) => {
+                    helperMongo.getNextSeqNo('getNextSeqNo5', nextSeqQuery, (err, result) => {
                         should.exist(err);
                         err.should.be.eql("No SeqNo Available")
 
@@ -745,20 +746,20 @@ describe("HelperMongo", () => {
                     arr: [
                         {
                             num: 1
-                        },{
+                        }, {
                             num: 2
-                        },{
+                        }, {
                             num: 3
-                        },{
+                        }, {
                             num: 10
                         },
                     ]
                 }
             ]
             db.collection("getNextSeqNo6").insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     var maxQuery = {
-                        query: {name: 'test'},
+                        query: { name: 'test' },
                         unwind: 'arr',
                         key: 'arr.num',
                         maxValue: 10,
@@ -780,7 +781,7 @@ describe("HelperMongo", () => {
 
     describe("#update()", () => {
         it("should validate the given _id in the document", (done) => {
-            helperMongo.update("update1", {_id: 'asdf'}, (err, result) => {
+            helperMongo.update("update1", { _id: 'asdf' }, (err, result) => {
                 should.exist(err);
                 err.should.be.eql("Invalid Id");
 
@@ -792,7 +793,7 @@ describe("HelperMongo", () => {
                 name: 'test'
             }
             db.collection("update2").insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     // console.log('result:', result);
                     result.name = 'test1'
                     helperMongo.update('update2', result, (err, result1) => {
@@ -801,8 +802,8 @@ describe("HelperMongo", () => {
                         result1.should.be.an("object");
                         result1.n.should.be.eql(1);
 
-                        db.collection("update2").findOne(result,  (err, result2) => {
-                            if(!err) {
+                        db.collection("update2").findOne(result, (err, result2) => {
+                            if (!err) {
                                 should.exist(result2);
                                 result2.should.be.an("object");
                                 result2.name.should.be.eql("test1");
@@ -825,7 +826,7 @@ describe("HelperMongo", () => {
                 name: 'test'
             }
             db.collection('update3').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.update('update3', result, (err, result1) => {
                         should.not.exist(err);
                         result1.should.be.an("object");
@@ -859,7 +860,7 @@ describe("HelperMongo", () => {
                 }
             ]
             db.collection('getList1').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getList("getList1", {}, (err, result1) => {
                         should.not.exist(err);
                         result1.should.be.an("object");
@@ -887,7 +888,7 @@ describe("HelperMongo", () => {
                 }
             ]
             db.collection('getList2').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getList("getList2", {
                         query: {
                             show: true
@@ -917,9 +918,9 @@ describe("HelperMongo", () => {
                 }
             ]
             db.collection('getList3').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getList("getList3", {
-                        project: {name: 1, _id: 0},
+                        project: { name: 1, _id: 0 },
                     }, (err, result1) => {
                         should.not.exist(err);
                         result1.should.be.an("object");
@@ -945,10 +946,10 @@ describe("HelperMongo", () => {
                 }
             ]
             db.collection('getList4').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getList("getList4", {
-                        project: {name: 1, _id: 0},
-                        sort: {name: -1}
+                        project: { name: 1, _id: 0 },
+                        sort: { name: -1 }
                     }, (err, result1) => {
                         should.not.exist(err);
                         result1.should.be.an("object");
@@ -979,7 +980,7 @@ describe("HelperMongo", () => {
                 }
             ]
             db.collection('getList5').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getList("getList5", {
                         search: 'test',
                         searchField: 'name'
@@ -1012,9 +1013,9 @@ describe("HelperMongo", () => {
                 }
             ]
             db.collection('getList6').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getList("getList6", {
-                        sort: {name: 1},
+                        sort: { name: 1 },
                         pageNo: 2,
                         recordsPerPage: 2
                     }, (err, result1) => {
@@ -1043,10 +1044,10 @@ describe("HelperMongo", () => {
                 }
             ]
             db.collection('getList7').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getList("getList7", {
-                        project: JSON.stringify({name: 1, _id: 0}),
-                        sort: JSON.stringify({name: -1})
+                        project: JSON.stringify({ name: 1, _id: 0 }),
+                        sort: JSON.stringify({ name: -1 })
                     }, (err, result1) => {
                         should.not.exist(err);
                         result1.should.be.an("object");
@@ -1075,9 +1076,9 @@ describe("HelperMongo", () => {
                 }
             ]
             db.collection('getList8').insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     helperMongo.getList("getList8", {
-                        project: {name: 1, _id: 0},
+                        project: { name: 1, _id: 0 },
                         sort: '-name'
                     }, (err, result1) => {
                         should.not.exist(err);
@@ -1111,12 +1112,12 @@ describe("HelperMongo", () => {
             var data = {
                 name: 'test'
             }
-            db.collection('remove2').insert(data, (err, result) =>  {
-                if(!err) {
+            db.collection('remove2').insert(data, (err, result) => {
+                if (!err) {
                     helperMongo.remove("remove2", result._id, true, (err, result1) => {
                         should.not.exist(err);
 
-                        db.collection('remove2').findOne({_id: result._id}, (err, result2) => {
+                        db.collection('remove2').findOne({ _id: result._id }, (err, result2) => {
                             should.not.exist(err);
                             should.not.exist(result2);
 
@@ -1133,12 +1134,12 @@ describe("HelperMongo", () => {
             var data = {
                 name: 'test'
             }
-            db.collection('remove3').insert(data, (err, result) =>  {
-                if(!err) {
+            db.collection('remove3').insert(data, (err, result) => {
+                if (!err) {
                     helperMongo.remove("remove3", result._id, false, (err, result1) => {
                         should.not.exist(err);
 
-                        db.collection('remove3').findOne({_id: result._id}, (err, result2) => {
+                        db.collection('remove3').findOne({ _id: result._id }, (err, result2) => {
                             should.not.exist(err);
                             result2.should.be.an("object");
                             result2.isDeleted.should.be.ok;
@@ -1159,10 +1160,10 @@ describe("HelperMongo", () => {
         it("should split the given time into required slot and pick one point from each")
     })
 
-    describe.skip("#selectNinM()", () => {
+    describe("#selectNinM()", () => {
         it("should select N points from M points, given that N < M", (done) => {
             var data = [];
-            for(var i = 0; i < 100; i++) {
+            for (var i = 0; i < 100; i++) {
                 data.push({
                     name: 'test' + i,
                     num: i
@@ -1170,7 +1171,7 @@ describe("HelperMongo", () => {
             }
 
             db.collection("selectNinM1").insert(data, (err, result) => {
-                if(!err) {
+                if (!err) {
                     var obj = {
                         numOfPoints: 10,
                         groupLogic: '$first',
@@ -1178,10 +1179,10 @@ describe("HelperMongo", () => {
                         query: {}
                     }
                     helperMongo.selectNinM('selectNinM1', obj, (err, result1) => {
-                        console.log(err, result1);
+                        // console.log(err, result1);
                         should.not.exist(err);
-                        result.should.be.an('array');
-                        result.length.should.be.eql(obj.numOfPoints);
+                        result1.should.be.an('array');
+                        result1.length.should.be.eql(obj.numOfPoints);
 
                         done()
                     })

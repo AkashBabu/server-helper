@@ -1,7 +1,7 @@
 var should = require("chai").should();
 
-var {HelperValidate} = require("../../dist/index")
-var helperValidate = new HelperValidate()
+var { HelperValidate } = require("../../dist/index")
+var helperValidate = new HelperValidate(false)
 var mongo = require("mongojs")
 
 let moment = require('moment')
@@ -21,7 +21,7 @@ describe("Helper Validate", () => {
     })
     it("should validate the length of the array/string for the given range", () => {
       helperValidate.length("asdf", 3, 5).should.be.ok;
-      helperValidate.length([1, 2, 3, 4 ], 2, 3).should.not.be.ok;
+      helperValidate.length([1, 2, 3, 4], 2, 3).should.not.be.ok;
     })
   })
 
@@ -77,8 +77,8 @@ describe("Helper Validate", () => {
       helperValidate.isNumeric(i).should.be.ok
     })
     it("should validate for floating point numbers", () => {
-        var i = 23.456
-        helperValidate.isNumeric(i).should.be.ok
+      var i = 23.456
+      helperValidate.isNumeric(i).should.be.ok
     })
     it("should not validate if the string is not numeric", () => {
       var str = "asdf"

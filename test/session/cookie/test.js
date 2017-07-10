@@ -46,9 +46,8 @@ describe("SESSION-COOKIE", () => {
                 res.should.redirect;
                 res.should.have.status(200)
                 res.text.should.be.eql("Index Page")
-                    // res.should.have.cookie('connect.sid');
+                // res.should.have.cookie('connect.sid');
 
-                // console.log('headers:', res.headers)
 
                 done()
             })

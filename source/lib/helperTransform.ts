@@ -66,7 +66,7 @@ export class HelperTransform implements IHelperTransform {
         return salted;
     }
     public stripXss(str: string): string {
-        if (typeof str == "string"){
+        if (typeof str == "string") {
             return str.replace(/(<.*>(.*)<\/?.*>)/, "");
         }
         else {

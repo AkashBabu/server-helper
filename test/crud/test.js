@@ -9,14 +9,13 @@ chai.use(chaiHttp)
 
 var userColl = "users"
 
-describe("Users", function() {
+describe("CRUD on Users", function () {
     beforeEach((done) => {
         db.collection(userColl).remove({}, done)
     })
 
     after((done) => {
-        db.dropDatabase(function() {
-            console.log("Dropped test database");
+        db.dropDatabase(function () {
             done();
         })
     })

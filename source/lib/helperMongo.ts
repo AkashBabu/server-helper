@@ -327,7 +327,7 @@ export class HelperMongo implements IHelperMongo {
                 multi: false,
             }, cb);
     }
-   
+
     public getList(collName: string, obj: IGetList, cb: Function): void {
         obj = obj || {};
         obj.query = this.getObj(obj.query);
@@ -548,7 +548,7 @@ export class HelperMongo implements IHelperMongo {
     private isValidateObject(data: IValidationObject | IValidationObject[]): data is IValidationObject {
         return (<IValidationObject[]>data).length !== undefined;
     }
-     private getObj(data: string | object, sort?: boolean): object {
+    private getObj(data: string | object, sort?: boolean): object {
         if (data) {
             if (typeof data == "string") {
                 try {

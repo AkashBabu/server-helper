@@ -16,9 +16,9 @@ var db = require("mongojs")(config.options.connStr)
 var options = Object.assign({}, config.options);
 
 var Cookie = Session.Cookie;
-var cookie = new Cookie(options, true)
+var cookie = new Cookie(options, false)
 
-app.use(logger('dev'))
+// app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
@@ -66,15 +66,15 @@ app.get("/logout", cookie.logout(), (req, res) => {
 
 app.get('/portal/login', (req, res) => {
     res.end("Login Page")
-        // res.sendFile(path.join(__dirname, "login.html"))
+    // res.sendFile(path.join(__dirname, "login.html"))
 })
 app.get('/portal/register', (req, res) => {
     res.end("Register Page")
-        // res.sendFile(path.join(__dirname, "register.html"))
+    // res.sendFile(path.join(__dirname, "register.html"))
 })
 app.get('/portal/index', (req, res) => {
     res.end("Index Page")
-        // res.sendFile(path.join(__dirname, "index.html"))
+    // res.sendFile(path.join(__dirname, "index.html"))
 })
 
 app.use((req, res) => {

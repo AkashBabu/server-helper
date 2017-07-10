@@ -74,7 +74,7 @@ export class Cookie implements ICookie {
     public register(): IMiddleware {
         return (req, res, next) => {
             this.passport.authenticate("local-register", (err, user, info) => {
-                if (err) { 
+                if (err) {
                     return res.redirect(this.options.register.failureRedirect)
                 }
                 if (!user) {

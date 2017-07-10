@@ -60,7 +60,6 @@
   ],
   "license": "MIT",
   "main": "./dist/index.js",
-  "types": "/dist/types/index.d.ts",
   "maintainers": [
     {
       "email": "001akashbabu@gmail.com",
@@ -75,7 +74,7 @@
     "url": "git+https://github.com/AkashBabu/server-helper.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/**/* --recursive"
   },
   "version": "0.11.1"
 }

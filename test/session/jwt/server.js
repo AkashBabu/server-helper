@@ -41,7 +41,7 @@ function validate(userId, cb) {
 var jwt = new JWT(options, true);
 var jwtDefault = new JWT(config.options, true);
 
-app.use(logger('dev'))
+// app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 

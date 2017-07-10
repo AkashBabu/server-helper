@@ -2,7 +2,7 @@
 
 var serverHelper = require('../../dist/index');
 var Helper = serverHelper.Helper;
-var helper = new Helper(true);
+var helper = new Helper(false);
 
 var chai = require('chai');
 var assert = chai.assert
@@ -78,9 +78,9 @@ describe('helper', () => {
     describe("#prefixToQueryObject()", () => {
         it("should add the specified prefix to each key in the object", () => {
             var obj = {
-                    a: 1,
-                    b: 1
-                },
+                a: 1,
+                b: 1
+            },
                 prefix = "test"
 
             var converted = helper.prefixToQueryObject(prefix, obj)
@@ -303,11 +303,11 @@ describe('helper', () => {
                 done()
             })
         })
-        it("should apply async validate function", function(done) {
+        it("should apply async validate function", function (done) {
             this.timeout(2000)
 
             function validateFn(d, cb) {
-                setTimeout(function() {
+                setTimeout(function () {
                     cb(null, d > 10)
                 }, 50)
             }
@@ -331,17 +331,17 @@ describe('helper', () => {
                 done()
             })
         })
-        it("should apply mulitple async validate functions", function(done) {
+        it("should apply mulitple async validate functions", function (done) {
             this.timeout(3000)
 
             function validateFn1(d, cb) {
-                setTimeout(function() {
+                setTimeout(function () {
                     cb(null, d > 10)
                 }, 50)
             }
 
             function validateFn2(d, cb) {
-                setTimeout(function() {
+                setTimeout(function () {
                     cb(null, d < 30)
                 }, 50)
             }
@@ -366,10 +366,10 @@ describe('helper', () => {
                 done()
             })
         })
-        it("should apply async transform function", function(done) {
+        it("should apply async transform function", function (done) {
             this.timeout(2000)
             function transformFn(d, cb) {
-                setTimeout(function() {
+                setTimeout(function () {
                     cb(null, d * 10)
 
                 }, 50)
@@ -516,7 +516,7 @@ describe('helper', () => {
 
                 helper.validateFieldsCb(obj, errValidations, false, (err) => {
                     err.should.be.eql("B should be an array")
-                
+
                     helper.validateFieldsCb(obj, typeArrayValidations, false, (err) => {
                         should.not.exist(err);
                         done();
@@ -542,7 +542,7 @@ describe('helper', () => {
                     name: 'a',
                     type: ['number', 'string'],
                     preTransform: toInt,
-                    preTransformArgs: [2], 
+                    preTransformArgs: [2],
                     validate: validate,
                     validateErrMsg: "A is not eql to 6",
                     errMsg: "Invalid A"
@@ -557,7 +557,7 @@ describe('helper', () => {
         it("should apply async-pre-transform function")
     })
 
-    describe.only('#validateFieldsExistence()', function() {
+    describe('#validateFieldsExistence()', function () {
         it("should validate length of fields against object keys in strict mode", () => {
             var obj = {
                 a: 1,
@@ -828,7 +828,7 @@ describe('helper', () => {
             })
         })
         it("should apply pre-transform before validation functions", done => {
-            function toInt(data, multiplier){
+            function toInt(data, multiplier) {
                 return parseInt(data) * multiplier;
             }
 
@@ -860,8 +860,8 @@ describe('helper', () => {
 
     })
 
-    describe('#saltHash', function() {
-        it('should return an encrypted password that cannot be partialised as secret and password', function() {
+    describe('#saltHash', function () {
+        it('should return an encrypted password that cannot be partialised as secret and password', function () {
             var pwd = 'secret';
             var encrypted = helper.saltHash(pwd)
             assert.isTrue(pwd != encrypted, 'password is not encrypted');

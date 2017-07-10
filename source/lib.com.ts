@@ -7,10 +7,11 @@ export interface ICallback {
 export interface IRequest extends express.Request {
     body?: any;
     user?: any;
-    logIn?: Function;  
-    logout?: Function;  
+    logIn?: Function;
+    logout?: Function;
 }
-export interface IResponse extends express.Response {}
+export interface IResponse extends express.Response {
+}
 export interface IMiddleware {
     (req: IRequest, res: IResponse, next?: express.NextFunction): void;
 }
