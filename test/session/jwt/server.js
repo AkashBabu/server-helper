@@ -80,6 +80,11 @@ app.post("/validate-whitelist-object", jwt.validate([{
     })
 })
 
+app.use(jwt.validate());
+app.get("/user", (req, res) => {
+    res.send(req.user);
+})
+
 app.use((req, res) => {
     console.log('API Not Found')
     res.status(404).send({

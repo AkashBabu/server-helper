@@ -2,6 +2,8 @@ var chai = require('chai')
 var should = chai.should()
 
 chai.use(require("chai-http"));
+var Helper = new require("../../../dist/index").Helper;
+var helper = new Helper(false);
 
 var config = require("./config")
 var db = require("mongojs")(config.options.connStr)
@@ -16,6 +18,9 @@ describe("SESSION-JWT", () => {
         }, {
             email: 'test2@mail.com',
             pwd: 'test123'
+        }, {
+            email: 'test3@mail.com',
+            password: helper.saltHash('test123')
         }]
         db.collection(config.options.collName).insert(users, done);
     })
@@ -47,7 +52,7 @@ describe("SESSION-JWT", () => {
     })
     it("should use default handlers while login handler is not specified", done => {
         var user = {
-            email: "test1@mail.com",
+            email: "test3@mail.com",
             password: 'test123'
         }
         request.post('/login-default')
@@ -99,7 +104,6 @@ describe("SESSION-JWT", () => {
             .send(user)
             .end((err, res) => {
                 should.exist(err)
-                console.log('data:', res.body)
                 res.should.have.status(400)
                 res.body.should.be.an("object")
                 res.body.error.should.be.ok;
@@ -118,7 +122,6 @@ describe("SESSION-JWT", () => {
             .send(user)
             .end((err, res) => {
                 should.not.exist(err)
-                    // console.log('res', res.body) 
                 res.should.have.status(200)
                 res.body.should.be.an("object")
                 res.body.error.should.not.be.ok;
@@ -302,6 +305,37 @@ describe("SESSION-JWT", () => {
                 res1.body.data.should.be.eql("valid")
 
                 done();
+            })
+    })
+
+    it("should set a req.user on token validate", done => {
+        var user = {
+            email: "test1@mail.com",
+            pwd: 'test123'
+        }
+        request.post('/login')
+            .send(user)
+            .end((err, res) => {
+                should.not.exist(err)
+                res.should.have.status(200);
+                res.body.should.be.an('object');
+                res.body.error.should.not.be.ok;
+                res.body.data.should.be.an("object")
+                should.exist(res.body.data.token);
+                should.exist(res.body.data.expires);
+                res.body.data.user.should.be.an("object")
+                res.body.data.user.email.should.be.eql(user.email)
+
+                request.get('/user')
+                    .set('x-access-token', res.body.data.token)
+                    .end((err, res1) => {
+                        should.not.exist(err)
+                        res1.should.have.status(200)
+                        res1.body.should.be.an("object")
+                        res1.body.email.should.be.eql(user.email);
+
+                        done();
+                    })
             })
     })
 
