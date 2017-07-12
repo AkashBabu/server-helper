@@ -13,18 +13,19 @@ app.get("/serverError", (req, res) => {
 })
 
 app.get("/handleResult", (req, res) => {
-    setTimeout(function () {
-        helperResp.handleResult(res, null, Object.keys(req.query).length ? req.query : null)
+    setTimeout(() => {
+        helperResp.handleResult(res)(null, Object.keys(req.query).length ? req.query : null)
+        // helperResp.handleResult(res, null, Object.keys(req.query).length ? req.query : null)
     }, 100)
 })
 app.get("/handleResult/error", (req, res) => {
     setTimeout(() => {
-        helperResp.handleResult(res, "Test Error");
+        helperResp.handleResult(res)("Test Error", null)
     }, 100)
 })
 app.get("/handleResult/:type", (req, res) => {
     setTimeout(function () {
-        helperResp.handleResult(res, null, Object.keys(req.query).length ? req.query : null, req.params.type)
+        helperResp.handleResult(res)(null, Object.keys(req.query).length ? req.query : null, req.params.type)
     }, 100)
 })
 
