@@ -80,7 +80,7 @@ console.log(obj) // {a: 1, b: 1}
                         nav: 'weakPassword',
                         return: {
                             type: 'string',
-                            desc: 'Returns if the given string does not satisfy the conditions specified in the config object'
+                            desc: 'Returns error, if the given string does not satisfy the conditions specified in the config object'
                         },
                         params: [
                             {
@@ -88,51 +88,118 @@ console.log(obj) // {a: 1, b: 1}
                                 desc: 'String to check for weak password'
                             }, {
                                 name: 'config',
-                                desc: 'Object'
-                            }, {
-                                name: 'sameObj',
-                                optional: true,
-                                desc: ''
+                                desc: `{
+                                    minLen?: number;
+                                    maxLen?: number;
+                                    upperCase?: boolean;
+                                    lowerCase?: boolean;
+                                    specialChars?: string[];
+                                }`
                             }
                         ],
                         desc: `Checks if the given string is a weak password`,
                         example: [`
-var Helper = require("server-helper").Helper
-                    `, `
-var helper = another.line;                    
-                    `]
+var password = "Test123"
+console.log(helper.weakPwd(password, {minLen: 3, maxLen: 5}))
+// Please choose a password length of atmost 5 characters
+                    `
+                        ]
+                    },
+                    {
+                        id: 'prefixToQueryObject',
+                        name: 'prefixToQueryObject(prefix: string, obj: object) => object',
+                        nav: 'prefixToQueryObject',
+                        return: {
+                            type: 'object',
+                            desc: 'Object with prefixed keys'
+                        },
+                        params: [
+                            {
+                                name: 'prefix',
+                                desc: 'String to be prefixed to each key'
+                            }, {
+                                name: 'obj',
+                                desc: `Object whose keys has to be prefixed`
+                            }
+                        ],
+                        desc: `Prefix the given key to each string in the object`,
+                        example: [`
+var obj = {a: 1, b: 1};
+var prefix = "test"
+console.log(helper.prefixToQueryObject(prefix, obj))
+// {"test.a" : 1, "test.b": 1}
+                    `
+                        ]
+                    },
+                    {
+                        id: 'validateFieldsCb',
+                        name: 'validateFieldsCb(obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: Function): void;',
+                        nav: 'validateFieldsCb',
+                        params: [
+                            {
+                                name: 'obj',
+                                desc: 'Object to be validated'
+                            }, {
+                                name: 'fieldSpecs',
+                                desc: `[{
+                                    name: string;
+                                    type: any;
+                                    required?: boolean;
+                                    preTransform?: IPreTransform;
+                                    preTransformArgs?: any[];
+                                    validate?: IValidationFn | IValidationFn[];
+                                    validateArgs?: any[];
+                                    validateErrMsg: string | string[];
+                                    transform: ITransformFn | ITransformFn[];
+                                    transformArgs: any[];
+                                    unique?: boolean;
+                                    errMsg: string;
+                                }]`
+                            }, {
+                                name: 'strict',
+                                desc: 'If this is true'
+                            }
+                        ],
+                        desc: `Prefix the given key to each string in the object`,
+                        example: [`
+var obj = {a: 1, b: 1};
+var prefix = "test"
+console.log(helper.prefixToQueryObject(prefix, obj))
+// {"test.a" : 1, "test.b": 1}
+                    `
+                        ]
                     },
                 ]
             },
             "Session-JWT": {
                 methods: [{
-                        id: 'login',
-                        name: 'login(password: string, config: object) => string',
-                        nav: 'login',
-                        return: {
-                            type: 'string',
-                            desc: 'Returns if the given string does not satisfy the conditions specified in the config object'
-                        },
-                        params: [
-                            {
-                                name: 'password',
-                                desc: 'String to check for weak password'
-                            }, {
-                                name: 'config',
-                                desc: 'Object'
-                            }, {
-                                name: 'sameObj',
-                                optional: true,
-                                desc: ''
-                            }
-                        ],
-                        desc: `Checks if the given string is a weak password`,
-                        example: [`
+                    id: 'login',
+                    name: 'login(password: string, config: object) => string',
+                    nav: 'login',
+                    return: {
+                        type: 'string',
+                        desc: 'Returns if the given string does not satisfy the conditions specified in the config object'
+                    },
+                    params: [
+                        {
+                            name: 'password',
+                            desc: 'String to check for weak password'
+                        }, {
+                            name: 'config',
+                            desc: 'Object'
+                        }, {
+                            name: 'sameObj',
+                            optional: true,
+                            desc: ''
+                        }
+                    ],
+                    desc: `Checks if the given string is a weak password`,
+                    example: [`
 var Helper = require("server-helper").Helper
                     `, `
 var helper = another.line;                    
                     `]
-                    },]
+                },]
             },
             "Session-Cookie": {
                 methods: [{
