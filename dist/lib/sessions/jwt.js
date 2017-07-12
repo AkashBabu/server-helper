@@ -37,9 +37,10 @@ class JWT {
                     email: req.body.email
                 }, (err, user) => {
                     if (user) {
-                        // let valid = this.helper.verifySaltHash(user.password, req.body.password);
-                        // loginCb.call(this)(err, valid ? user : false);
-                        loginCb.call(this)(null, user);
+                        this.logger.log('user:', user);
+                        let valid = this.helper.verifySaltHash((user.password || user.pwd), req.body.password);
+                        loginCb.call(this)(err, valid ? user : false);
+                        // loginCb.call(this)(null, user);
                     }
                     else {
                         loginCb.call(this)(err, user);
@@ -99,6 +100,7 @@ class JWT {
             function validateCb() {
                 return (err, user) => {
                     if (user) {
+                        req.user = user;
                         next();
                     }
                     else {

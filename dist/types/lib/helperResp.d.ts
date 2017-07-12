@@ -15,7 +15,7 @@ export declare class HelperResp implements IHelperResp {
     constructor(debug?: boolean);
     unauth(res: IHTTPResp, comment?: string): void;
     serverError(res: IHTTPResp, comment?: string): void;
-    handleResult(res: IHTTPResp, err: Error, result: any, type?: string): void;
+    handleResult(res: IHTTPResp): Function;
     success(res: IHTTPResp, data?: object): void;
     failed(res: IHTTPResp, data?: string): void;
     post(res: IHTTPResp, data?: object): void;

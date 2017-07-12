@@ -19,22 +19,39 @@ class HelperResp {
             data: comment || "INTERNAL SERVER ERROR"
         });
     }
-    handleResult(res, err, result, type = "array") {
-        type = type.toLowerCase();
-        if (!err) {
-            res.status(200).send({
-                error: false,
-                data: this.isUndefined(result) ? (type == "array" ? [] : {}) : result
-            });
-        }
-        else {
-            this.logger.error("HELPER_RESP HandleResult Err:", err);
-            res.status(500).send({
-                error: true,
-                data: type == "array" ? [] : {}
-            });
-        }
+    handleResult(res) {
+        return (err, result, type = "array") => {
+            type = type.toLowerCase();
+            if (!err) {
+                res.status(200).send({
+                    error: false,
+                    data: this.isUndefined(result) ? (type == "array" ? [] : {}) : result
+                });
+            }
+            else {
+                this.logger.error("HELPER_RESP HandleResult Err:", err);
+                res.status(500).send({
+                    error: true,
+                    data: type == "array" ? [] : {}
+                });
+            }
+        };
     }
+    // public handleResult(res: IHTTPResp, err: Error, result: any, type = "array"): void {
+    //     type = type.toLowerCase();
+    //     if (!err) {
+    //         res.status(200).send({
+    //             error: false,
+    //             data: this.isUndefined(result) ? (type == "array" ? [] : {}) : result
+    //         })
+    //     } else {
+    //         this.logger.error("HELPER_RESP HandleResult Err:", err)
+    //         res.status(500).send({
+    //             error: true,
+    //             data: type == "array" ? [] : {}
+    //         })
+    //     }
+    // }
     success(res, data) {
         res.status(200).send({
             error: false,
