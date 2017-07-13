@@ -62,7 +62,7 @@ export class JWT implements IJWT {
                     email: req.body.email
                 }, (err, user) => {
                     if (user) {
-                        this.logger.log('user:', user);
+                        // this.logger.log('user:', user);
                         let valid = this.helper.verifySaltHash((user.password || user.pwd), req.body.password);
                         loginCb.call(this)(err, valid ? user : false);
                         // loginCb.call(this)(null, user);

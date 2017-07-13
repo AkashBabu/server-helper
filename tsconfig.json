@@ -9,8 +9,8 @@
         "allowUnusedLabels": false,
         "project": ".",
         "watch": true,
-        "outDir": "./dist/",
-        "declarationDir": "./dist/types/"
+        "outDir": "./dist/"
+        // "declarationDir": "./dist/types/"
     },
     "files": [
         "./source/index.ts",
