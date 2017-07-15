@@ -21,17 +21,59 @@ module.exports = function (app) {
         vm.changeContent = (heading) => {
             vm.currHeading = heading;
             vm.currContent = vm.content[vm.currHeading]
-        }
-
-        vm.navigateTo = (location) => {
-            console.log('navigating to:', location);
             $timeout(() => {
-                var navEl = angular.element(document.getElementById(location));
-
-                $document.duScrollToElement(navEl, 30, 1000);
-                // $document.scrollToElementAnimated(navEl);
-            }, 10)
+                Prism.highlightAll();
+            })
         }
+
+        vm.getType = function (param) {
+            if (param.type) {
+                return param.type
+            }
+
+            var desc = param.desc;
+            if (desc) {
+                var start = desc.indexOf('[');
+                var end = desc.lastIndexOf(']');
+
+                if (start == -1 || end == -1) {
+                    return false;
+                } else {
+                    return desc.slice(start + 1, end);
+                }
+            } else {
+                return false;
+            }
+        }
+
+        vm.getDesc = function (param) {
+            if (param.type) {
+                return param.desc;
+            }
+
+            var desc = param.desc
+            if (desc) {
+                var end = desc.lastIndexOf("]");
+
+                if (end > -1) {
+                    return desc.slice(end + 2)
+                } else {
+                    return desc;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        // vm.navigateTo = (location) => {
+        //     console.log('navigating to:', location);
+        //     $timeout(() => {
+        //         var navEl = angular.element(document.getElementById(location));
+
+        //         $document.duScrollToElement(navEl, 30, 1000);
+        //         // $document.scrollToElementAnimated(navEl);
+        //     }, 10)
+        // }
 
         $scope.$watch(() => {
             return !$mdMedia("gt-sm")
