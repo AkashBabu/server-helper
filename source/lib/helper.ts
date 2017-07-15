@@ -27,7 +27,6 @@ export interface IFieldSpec {
     validateErrMsg: string | string[];
     transform: ITransformFn | ITransformFn[];
     transformArgs: any[];
-    unique?: boolean;
     errMsg: string;
 }
 
@@ -58,6 +57,7 @@ export class Helper implements IHelper {
     private chance = new sh_Chance();
     public filterObj = this.filterKeysInObj;
     public validateFieldsCb = this.validateFieldsExistenceCb;
+    public validateFields = this.validateFieldsExistence;
     constructor(debug: boolean) {
         this.logger[debug ? "activate" : "deactivate"]();
 
@@ -426,11 +426,15 @@ export class Helper implements IHelper {
                             validType = fieldSpec.type.indexOf(typeof obj[fieldSpec.name]) > -1;
                         }
                     } else {
-                        validType = typeof obj[fieldSpec.name] == fieldSpec.type;
+                        if (fieldSpec.type == 'array') {
+                            validType = Array.isArray(obj[fieldSpec.name])
+                        } else {
+                            validType = typeof obj[fieldSpec.name] == fieldSpec.type;
+                        }
                     }
 
                     if (!validType) {
-                        this.logger.log(`Invalid Type: ${fieldSpec.name}, expected to be ${fieldSpec.type}`);
+                        this.logger.log(`Invalid Type: ${fieldSpec.name}, expected to be ${fieldSpec.type}, but got` + typeof obj[fieldSpec.name]);
                         return false;
                     }
                 }
@@ -494,8 +498,12 @@ export class Helper implements IHelper {
                 return true;
 
             } else {
-                self.logger.log("Field Not Defined:", fieldSpec.name);
-                return false;
+                if (typeof fieldSpec.required == "boolean" && !fieldSpec.required) {
+                    return true;
+                } else {
+                    self.logger.log("Field Not Defined:", fieldSpec.name);
+                    return false;
+                }
             }
         })
     }
@@ -539,7 +547,7 @@ export class Helper implements IHelper {
      */
     public handleResult(res: IHTTPResp, err: Error, result: any, type?: string): void {
         console.warn("Please use HelperResp.handleResult instead. This function will be deprecated in the next major release");
-        
+
         if (!type) {
             type = "array"
         }
