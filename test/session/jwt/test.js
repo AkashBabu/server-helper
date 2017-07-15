@@ -71,6 +71,22 @@ describe("SESSION-JWT", () => {
                 done();
             })
     })
+    it("should return 'Please specify a password' when the password field is not present/is mispelled", done => {
+        var user = {
+            email: "test3@mail.com",
+            passwo: 'test123'
+        }
+        request.post('/login-default')
+            .send(user)
+            .end((err, res) => {
+                res.should.have.status(400);
+                res.body.should.be.an('object');
+                res.body.error.should.be.ok;
+                res.body.data.should.be.eql("Please specify a password")
+
+                done();
+            })
+    })
 
     it("should create JWT tokens on Register", (done) => {
         var user = {
@@ -108,6 +124,24 @@ describe("SESSION-JWT", () => {
                 res.body.should.be.an("object")
                 res.body.error.should.be.ok;
                 res.body.data.should.be.eql("Duplicate User");
+
+                done();
+            })
+    })
+    it("should return 'Please specify a password' when password field is not present/ is mispelled", done => {
+        var user = {
+            name: 'test',
+            email: 'test10@mail.com',
+            passwo: 'test123'
+        }
+        request.post("/register-default")
+            .send(user)
+            .end((err, res) => {
+                should.exist(err)
+                res.should.have.status(400)
+                res.body.should.be.an("object")
+                res.body.error.should.be.ok;
+                res.body.data.should.be.eql("Please specify a password");
 
                 done();
             })

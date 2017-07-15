@@ -846,6 +846,36 @@ describe("HelperMongo", () => {
                 }
             })
         })
+        it("should not update the excluded fields", done => {
+            var data = {
+                name: 'test',
+                field2: 'should Not Be Updated'
+            }
+            db.collection('update4').insert(data, (err, result) => {
+                if (!err) {
+                    result.field2 = "updated data";
+                    result.name = "updated name";
+
+                    helperMongo.update('update4', result, ["field2"], (err, result1) => {
+                        should.not.exist(err);
+                        result1.should.be.an("object");
+                        result1.n.should.be.eql(1);
+
+                        db.collection("update4").findOne({ _id: result._id }, (err, result2) => {
+                            should.not.exist(err);
+                            result2.should.be.an("object");
+                            result2.field2.should.be.eql("should Not Be Updated")
+                            result2.name.should.be.eql("updated name")
+
+                            done()
+                        })
+                    })
+                } else {
+                    console.error('Failed to insert into update3');
+                    done(err);
+                }
+            })
+        })
     })
 
     describe("#getList()", () => {
@@ -1156,8 +1186,47 @@ describe("HelperMongo", () => {
         })
     })
 
-    describe.skip("#splitTimeThenGrp()", () => {
-        it("should split the given time into required slot and pick one point from each")
+    describe("#splitTimeThenGrp()", () => {
+        it("should split the given time into required slot and pick one point from each", done => {
+            var data = []
+            var currTs = moment()
+            var count = 1000;
+            var interval = 10;
+            for (var i = 0; i < count; i++) {
+                data.push({
+                    ts: moment().add(i * interval, "seconds")._d,
+                    x: i
+                })
+            }
+            var totalSeconds = count * interval
+            db.collection("splitTimeThenGroup1").insert(data, (err, result) => {
+                if (!err) {
+                    var option = {
+                        key: {
+                            name: "ts",
+                            min: moment()._d,
+                            max: moment().add(totalSeconds, "seconds")._d,
+                            // type: 'unix'
+                        },
+                        project: ['x'],
+                        groupBy: 'hour',
+                        groupLogic: '$first'
+                    }
+                    // console.log(option);
+                    var expectedCount = Math.ceil(totalSeconds / 60 / 60);
+
+                    helperMongo.splitTimeThenGrp("splitTimeThenGroup1", option, (err, result1) => {
+                        // console.log(err, result1);
+                        result1.should.be.an("array");
+                        result1.length.should.be.eql(expectedCount);
+
+                        done();
+                    })
+                } else {
+                    console.error("Failed to insert into splitTimeThenGroup1", err)
+                }
+            })
+        })
     })
 
     describe("#selectNinM()", () => {

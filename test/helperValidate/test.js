@@ -41,6 +41,13 @@ describe("Helper Validate", () => {
       helperValidate.in(2, arr).should.be.ok
       helperValidate.in(6, arr).should.not.be.ok;
     })
+    it("should perform deep checking if the data is of type object | array", () => {
+      var data = { name: 1, age: 3 }
+      var data2 = [1, 2]
+      var arr = [{ name: 2 }, { name: 1, age: 3 }, [1, 2]]
+      helperValidate.in(data, arr).should.be.ok;
+      helperValidate.in(data2, arr).should.be.ok;
+    })
   })
 
   describe("#isName()", () => {

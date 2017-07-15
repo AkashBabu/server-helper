@@ -1,8 +1,6 @@
-/// <reference path="../../dist/types/index.d.ts" />
-
 var serverHelper = require('../../dist/index');
 var Helper = serverHelper.Helper;
-var helper = new Helper(false);
+var helper = new Helper(true);
 
 var chai = require('chai');
 var assert = chai.assert
@@ -549,7 +547,7 @@ describe('helper', () => {
                 }
             ]
 
-            helper.validateFieldsExistenceCb(obj, validations, true, err => {
+            helper.validateFieldsCb(obj, validations, true, err => {
                 should.not.exist(err);
                 done();
             })
@@ -557,7 +555,7 @@ describe('helper', () => {
         it("should apply async-pre-transform function")
     })
 
-    describe('#validateFieldsExistence()', function () {
+    describe('#validateFields()', function () {
         it("should validate length of fields against object keys in strict mode", () => {
             var obj = {
                 a: 1,
@@ -570,7 +568,7 @@ describe('helper', () => {
                 name: 'b'
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.not.be.ok;
+            helper.validateFields(obj, validations, true).should.not.be.ok;
         })
         it("should validate field type", () => {
             var obj = {
@@ -589,7 +587,7 @@ describe('helper', () => {
                 type: "number"
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.be.ok;
+            helper.validateFields(obj, validations, true).should.be.ok;
         })
         it("should valide for multiple field types", () => {
             var obj = {
@@ -608,7 +606,7 @@ describe('helper', () => {
                 type: "number"
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.be.ok;
+            helper.validateFields(obj, validations, true).should.be.ok;
         })
         it("should not strip extra fields in normal mode", () => {
             var obj = {
@@ -624,7 +622,7 @@ describe('helper', () => {
                 type: ["number", "string"]
             }]
 
-            helper.validateFieldsExistence(obj, validations, false)
+            helper.validateFields(obj, validations, false)
             assert.sameMembers(Object.keys(obj), ['a', 'b', 'c'], 'Does not have the same keys')
         })
         it("should strip extra fields on object against validations in strict mode", () => {
@@ -641,7 +639,7 @@ describe('helper', () => {
                 type: ["number", "string"]
             }]
 
-            helper.validateFieldsExistence(obj, validations, true)
+            helper.validateFields(obj, validations, true)
             assert.sameMembers(Object.keys(obj), ['a', 'b'], 'Does not have the same keys')
         })
         it("should apply validation fn", () => {
@@ -665,7 +663,7 @@ describe('helper', () => {
                 type: "number"
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.not.be.ok;
+            helper.validateFields(obj, validations, true).should.not.be.ok;
         })
         it("should apply validation args for validation fn", () => {
             function validateFn1(a, b) {
@@ -692,7 +690,7 @@ describe('helper', () => {
                 type: "number"
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.be.ok;
+            helper.validateFields(obj, validations, true).should.be.ok;
         })
         it("should apply transform fn", () => {
             function transformFn1(a) {
@@ -715,7 +713,7 @@ describe('helper', () => {
                 type: "number"
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.be.ok;
+            helper.validateFields(obj, validations, true).should.be.ok;
             obj.a.should.be.eql(10)
         })
         it("should apply transform args for transform fn", () => {
@@ -740,7 +738,7 @@ describe('helper', () => {
                 type: "number"
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.be.ok;
+            helper.validateFields(obj, validations, true).should.be.ok;
             obj.a.should.be.eql(2)
         })
         it("should apply validations and transformation", () => {
@@ -771,7 +769,7 @@ describe('helper', () => {
                 type: "number"
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.be.ok;
+            helper.validateFields(obj, validations, true).should.be.ok;
             obj.a.should.be.eql(25)
         })
         it("should apply validations args for corresponding validation fn (multiple validation functions)", () => {
@@ -802,9 +800,9 @@ describe('helper', () => {
                 type: "number"
             }]
 
-            helper.validateFieldsExistence(obj, validations, true).should.be.ok;
+            helper.validateFields(obj, validations, true).should.be.ok;
         })
-        it("should validate array types", done => {
+        it("should validate array types", () => {
             var obj = {
                 a: [1, 2],
                 b: 1
@@ -814,20 +812,15 @@ describe('helper', () => {
                 {
                     name: 'a',
                     type: 'array',
-                    errMsg: 'A is not an Array'
                 }, {
                     name: 'b',
                     type: ['array', 'number'],
-                    errMsg: 'b is not a number or an array'
                 }
             ]
 
-            helper.validateFieldsCb(obj, validations, true, err => {
-                should.not.exist(err);
-                done()
-            })
+            helper.validateFields(obj, validations, true).should.be.ok;
         })
-        it("should apply pre-transform before validation functions", done => {
+        it("should apply pre-transform before validation functions", () => {
             function toInt(data, multiplier) {
                 return parseInt(data) * multiplier;
             }
@@ -852,10 +845,24 @@ describe('helper', () => {
                 }
             ]
 
-            helper.validateFieldsCb(obj, validation, true, err => {
-                should.not.exist(err);
-                done();
-            })
+            helper.validateFields(obj, validation, true).should.be.ok;
+        })
+
+        it("should not return false if the field is not required", () => {
+            var obj = {
+                a: 1
+            }
+
+            var validations = [{
+                name: 'a',
+                type: 'number'
+            }, {
+                name: 'b',
+                type: 'string',
+                required: false
+            }]
+
+            helper.validateFields(obj, validations, false).should.be.ok;
         })
 
     })
