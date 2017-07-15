@@ -24,9 +24,20 @@ export declare class JWT implements IJWT {
     private helperResp;
     private logger;
     constructor(options: IJWTOptions, debug?: boolean);
+    /**
+     * Login Handler
+     */
     login(): IMiddleware;
+    /**
+     * Registration handler
+     */
     register(): IMiddleware;
+    /**
+     * Validation handler
+     * @param {string=} whitelist - Whitelisted url, that dont need authentication
+     */
     validate(whitelist?: (string | IUrl)[]): IMiddleware;
     private isUndefined(data);
+    private isDefined(data);
     private sendToken(res, user);
 }

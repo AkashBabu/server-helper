@@ -21,7 +21,6 @@ export interface IFieldSpec {
     validateErrMsg: string | string[];
     transform: ITransformFn | ITransformFn[];
     transformArgs: any[];
-    unique?: boolean;
     errMsg: string;
 }
 export interface IWeakPwd {
@@ -49,6 +48,7 @@ export declare class Helper implements IHelper {
     private chance;
     filterObj: (obj: object, filter: string[], sameObj?: boolean) => object;
     validateFieldsCb: (obj: object, fieldSpecs: IFieldSpec[], strict: boolean, callback: (err?: string) => void) => void;
+    validateFields: (obj: object, fieldSpecs: IFieldSpec[], strict?: boolean) => boolean;
     constructor(debug: boolean);
     /**
      * Filters out/removes the keys for the given object

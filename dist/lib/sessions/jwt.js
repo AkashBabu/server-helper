@@ -14,19 +14,27 @@ class JWT {
         this.helperResp = new index_1.HelperResp(debug);
         this.logger[debug ? "activate" : "deactivate"]();
     }
+    /**
+     * Login Handler
+     */
     login() {
         return (req, res) => {
             function loginCb() {
-                return (err, user) => {
+                return (err, user, msg) => {
                     if (user) {
                         this.sendToken(res, user);
                     }
                     else {
                         if (err) {
                             this.logger.error(err);
+                            this.helperResp.serverError(res);
                         }
-                        err ? this.helperResp.serverError(res) :
+                        else if (msg) {
+                            this.helperResp.failed(res, msg);
+                        }
+                        else {
                             this.helperResp.unauth(res, "Invalid Credentials");
+                        }
                     }
                 };
             }
@@ -38,9 +46,13 @@ class JWT {
                 }, (err, user) => {
                     if (user) {
                         // this.logger.log('user:', user);
-                        let valid = this.helper.verifySaltHash((user.password || user.pwd), req.body.password);
-                        loginCb.call(this)(err, valid ? user : false);
-                        // loginCb.call(this)(null, user);
+                        if (this.isDefined(req.body.password)) {
+                            let valid = this.helper.verifySaltHash(user.password, req.body.password);
+                            loginCb.call(this)(err, valid ? user : false);
+                        }
+                        else {
+                            loginCb.call(this)(null, null, "Please specify a password");
+                        }
                     }
                     else {
                         loginCb.call(this)(err, user);
@@ -52,18 +64,24 @@ class JWT {
             }
         };
     }
+    /**
+     * Registration handler
+     */
     register() {
         return (req, res) => {
             function registerCb() {
-                return (err, user) => {
+                return (err, user, msg) => {
                     if (user) {
                         this.sendToken(res, user);
                     }
                     else {
                         if (err) {
                             this.logger.error(err);
+                            this.helperResp.serverError(res);
                         }
-                        this.helperResp.serverError(res);
+                        else {
+                            this.helperResp.failed(res, msg);
+                        }
                     }
                 };
             }
@@ -84,7 +102,14 @@ class JWT {
                         }
                         else {
                             // We are good
-                            req.body.password = this.helper.saltHash(req.body.password);
+                            if (this.isDefined(req.body.password)) {
+                                req.body.password = this.helper.saltHash(req.body.password);
+                                // } else if (this.isDefined(req.body.pwd)) {
+                                //     req.body.pwd = this.helper.saltHash(req.body.pwd);
+                            }
+                            else {
+                                return registerCb.call(this)(null, null, "Please specify a password");
+                            }
                             this.db.collection(this.options.collName).insert(req.body, registerCb.call(this));
                         }
                     }
@@ -95,6 +120,10 @@ class JWT {
             }
         };
     }
+    /**
+     * Validation handler
+     * @param {string=} whitelist - Whitelisted url, that dont need authentication
+     */
     validate(whitelist) {
         return (req, res, next) => {
             function validateCb() {
@@ -125,6 +154,12 @@ class JWT {
             if (whitelist && isWhitelist(whitelist)) {
                 return next();
             }
+            /**
+             * Token shall be present in either body | header(x-access-token) | query
+             * Token is then decoded
+             * token expiry date is validated
+             * Token issuer(iss) is validated
+             */
             let token = (req.headers["x-access-token"] || req.body && req.body.access_token) || (req.query && req.query.access_token) || null; // Get JWT Token
             if (token) {
                 let decToken;
@@ -166,6 +201,9 @@ class JWT {
     isUndefined(data) {
         return data == undefined || data == null;
     }
+    isDefined(data) {
+        return (data != undefined && data != null);
+    }
     sendToken(res, user) {
         let expires = moment().add(this.options.validity, "day").toDate();
         let token = {
@@ -173,7 +211,6 @@ class JWT {
             expires: expires
         };
         let encToken = jwt.encode(token, this.options.secret, "HS256");
-        // res.cookie("token", encToken, { signed: true })
         res.status(200).send({
             error: false,
             data: {

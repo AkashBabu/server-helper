@@ -10,6 +10,7 @@ class Helper {
         this.chance = new sh_Chance();
         this.filterObj = this.filterKeysInObj;
         this.validateFieldsCb = this.validateFieldsExistenceCb;
+        this.validateFields = this.validateFieldsExistence;
         this.logger[debug ? "activate" : "deactivate"]();
         return this;
     }
@@ -344,10 +345,15 @@ class Helper {
                         }
                     }
                     else {
-                        validType = typeof obj[fieldSpec.name] == fieldSpec.type;
+                        if (fieldSpec.type == 'array') {
+                            validType = Array.isArray(obj[fieldSpec.name]);
+                        }
+                        else {
+                            validType = typeof obj[fieldSpec.name] == fieldSpec.type;
+                        }
                     }
                     if (!validType) {
-                        this.logger.log(`Invalid Type: ${fieldSpec.name}, expected to be ${fieldSpec.type}`);
+                        this.logger.log(`Invalid Type: ${fieldSpec.name}, expected to be ${fieldSpec.type}, but got` + typeof obj[fieldSpec.name]);
                         return false;
                     }
                 }
@@ -400,8 +406,13 @@ class Helper {
                 return true;
             }
             else {
-                self.logger.log("Field Not Defined:", fieldSpec.name);
-                return false;
+                if (typeof fieldSpec.required == "boolean" && !fieldSpec.required) {
+                    return true;
+                }
+                else {
+                    self.logger.log("Field Not Defined:", fieldSpec.name);
+                    return false;
+                }
             }
         });
     }

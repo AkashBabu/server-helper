@@ -33,12 +33,15 @@ class HelperMongo {
             case "hour":
                 format = "%Y-%m-%dT%H";
                 break;
+            case "minute":
             case "min":
                 format = "%Y-%m-%dT%H:%M";
                 break;
+            case "second":
             case "sec":
                 format = "%Y-%m-%dT%H:%M:%S";
                 break;
+            case "millisecond":
             case "milli":
                 format = "%Y-%m-%dT%H:%M:%S.%L";
                 break;
@@ -47,6 +50,12 @@ class HelperMongo {
         }
         return format;
     }
+    /**
+     * Validates if there is any document matching the given query
+     * @param collName collection name
+     * @param validate find() query
+     * @param cb callback
+     */
     validateExistence(collName, validate, cb) {
         this.db.collection(collName).findOne(validate.query || validate, function (err, result) {
             if (!result) {
@@ -57,10 +66,13 @@ class HelperMongo {
             }
         });
     }
+    /**
+     * Validate non existence for all the given validations
+     * @param collName collection name
+     * @param validations
+     * @param cb
+     */
     validateNonExistence(collName, validations, cb) {
-        // if(this.isValidateObject(validations)) {
-        //     validations = [validations];
-        // }
         if (!Array.isArray(validations)) {
             validations = [validations];
         }
@@ -77,6 +89,13 @@ class HelperMongo {
             cb(err, done);
         });
     }
+    /**
+     * Validates that the updated document does not collide with unique fields in the collection
+     * @param collName collection name
+     * @param obj Updated document
+     * @param validations
+     * @param cb Callback
+     */
     validateNonExistenceOnUpdate(collName, obj, validations, cb) {
         let id;
         try {
@@ -85,9 +104,6 @@ class HelperMongo {
         catch (err) {
             return cb("Invalid Id");
         }
-        // if (this.isValidationOnUpdate(validations)) {
-        //     validations = [validations];
-        // }
         if (!Array.isArray(validations)) {
             validations = [validations];
         }
@@ -104,7 +120,7 @@ class HelperMongo {
                         if (getExistingObj[field.name] != obj[field.name]) {
                             dbOperations += 1;
                             let mongoQuery = {};
-                            mongoQuery[field.name] = obj[field.name];
+                            mongoQuery[field.name] = obj[field.name]; // default mongoQuery
                             if (field.query) {
                                 mongoQuery = field.query;
                             }
@@ -132,6 +148,12 @@ class HelperMongo {
             cb(err, dbOperations);
         });
     }
+    /**
+     * Get the document that matches the given id
+     * @param collName collection name
+     * @param id mongoDB document id
+     * @param cb
+     */
     getById(collName, id, cb) {
         try {
             id = this.db.ObjectId(id);
@@ -143,6 +165,12 @@ class HelperMongo {
             _id: id
         }, cb);
     }
+    /**
+     * Get the max value of a numerical field in a collection
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     getMaxValue(collName, obj, cb) {
         /**
          * Flow
@@ -179,6 +207,12 @@ class HelperMongo {
             }
         });
     }
+    /**
+     * Get the next sequence number of a numerical field in a collection
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     getNextSeqNo(collName, obj, cb) {
         this.getMaxValue(collName, obj, (err, result) => {
             if (!err) {
@@ -224,7 +258,21 @@ class HelperMongo {
             }
         });
     }
-    update(collName, obj, cb) {
+    /**
+     * Updates the document excluding the specified fields from the object
+     * @param collName collection name
+     * @param obj Mongo Document
+     * @param exclude fields to be excluded
+     * @param cb Callback
+     */
+    update(collName, obj, exclude, cb) {
+        if (!exclude) {
+            throw Error("Callback not specified");
+        }
+        if (!cb && typeof exclude == 'function') {
+            cb = exclude;
+            exclude = [];
+        }
         let id;
         try {
             id = this.db.ObjectId(obj._id);
@@ -232,17 +280,25 @@ class HelperMongo {
         catch (err) {
             return cb("Invalid Id");
         }
-        delete obj._id;
-        obj.utime = new Date();
+        let updateObj = Object.assign({}, obj);
+        delete updateObj._id;
+        updateObj.utime = new Date();
+        exclude.forEach(key => delete updateObj[key]);
         this.db.collection(collName).update({
             _id: id
         }, {
-            $set: obj
+            $set: updateObj
         }, {
             upsert: false,
             multi: false,
         }, cb);
     }
+    /**
+     * Get a list of documents in a collection - can be used for CRUD - list apis
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     getList(collName, obj, cb) {
         obj = obj || {};
         obj.query = this.getObj(obj.query);
@@ -279,6 +335,13 @@ class HelperMongo {
             });
         });
     }
+    /**
+     * Removes a document/sets isDeleted flag on the document
+     * @param collName collection name
+     * @param id mongoDb document id
+     * @param removeDoc document will be removed if true, else will set isDeleted flag on the document
+     * @param cb Callback
+     */
     remove(collName, id, removeDoc, cb) {
         try {
             id = this.db.ObjectId(id);
@@ -309,6 +372,12 @@ class HelperMongo {
             }, cb);
         }
     }
+    /**
+     * Splits the selected range of documents by time and then groups them based on grouping logic
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     splitTimeThenGrp(collName, obj, cb) {
         /**
          * LOGIC
@@ -328,7 +397,7 @@ class HelperMongo {
             $lt: obj.key.max
         };
         let dateField = "$" + obj.key.name;
-        if (obj.key.type.toLowerCase() == "unix") {
+        if (obj.key.type && obj.key.type.toLowerCase() == "unix") {
             dateField = {
                 $add: [new Date(0), "$" + obj.key.name]
             };
@@ -351,13 +420,8 @@ class HelperMongo {
             group[reqField] = {};
             group[reqField][obj.groupLogic || "$first"] = "$" + reqField;
         });
-        let aggregate = [
-            { $match: match },
-            { $project: project1 },
-            { $group: group }
-        ];
         let project2 = {};
-        if (obj.key.type.toLowerCase() == "unix") {
+        if (obj.key.type && obj.key.type.toLowerCase() == "unix") {
             project2[obj.key.name] = {
                 $subtract: ["$_id", new Date(0)]
             };
@@ -371,9 +435,21 @@ class HelperMongo {
                 project2[reqField] = 1;
             });
         }
-        aggregate.push({ $project: project2 });
+        let aggregate = [
+            { $match: match },
+            { $project: project1 },
+            { $group: group },
+            { $project: project2 }
+        ];
+        // aggregate.push({ $project: project2 });
         this.db.collection(collName).aggregate(aggregate, cb);
     }
+    /**
+     * Selects n number of documents from m range of selected documents based on grouping logic
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     selectNinM(collName, obj, cb) {
         /**
          * LOGIC
