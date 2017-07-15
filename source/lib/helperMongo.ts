@@ -9,6 +9,17 @@ export interface IMongoDoc {
     utime: Date;
 }
 
+export interface IValidationNonExistence {
+    query: object;
+    errMsg?: string
+}
+
+export interface IValidationNonExistenceUpdate {
+    name: string;
+    query?: object;
+    errMsg?: string;
+}
+
 export interface IKey {
     name: string;
     type: string;
@@ -16,21 +27,13 @@ export interface IKey {
     max: Date | number;
 }
 
-export interface IValidationObject {
-    query?: object;
-    errMsg?: string;
-}
-
-export interface IValidationOnUpdate extends IValidationObject {
-    name: string;
-}
 export interface ISplitTimeThenGrp {
     key: IKey;
+    project: string[];
     groupBy?: string;
     groupLogic?: string;
     interval?: number;
     intervalUnits?: string;
-    project: string[];
 }
 export interface ISelectNinM {
     groupLogic?: string;
@@ -59,12 +62,11 @@ export interface IMaxValue {
 export interface IHelperMongo {
     getDateFormat(groupBy: string): string;
     validateExistence(collName: string, validate: object, cb: Function): void;
-    validateNonExistence(collName: string, validate: IValidationObject | IValidationObject[], cb: Function): void;
-    validateNonExistenceOnUpdate(collName: string, obj: object | object[], validations: IValidationOnUpdate[] | IValidationOnUpdate, cb: Function): void;
+    validateNonExistence(collName: string, validate: IValidationNonExistence | IValidationNonExistence[], cb: Function): void;
+    validateNonExistenceOnUpdate(collName: string, obj: object | object[], validations: IValidationNonExistenceUpdate[] | IValidationNonExistenceUpdate, cb: Function): void;
     getById(collName: string, id: string, cb: Function): void;
-    getMaxValue(collName: string, obj: object, cb: Function): void;
     getNextSeqNo(collName: string, obj: object, cb: Function): void;
-    update(collName: string, obj: object, cb: Function): void;
+    update(collName: string, obj: object, exclude?: string[], cb?: Function): void;
     getList(collName: string, obj: object, cb: Function): void;
     remove(collName: string, id: string, removeDoc: boolean, cb: Function): void;
     splitTimeThenGrp(collName: string, obj: ISplitTimeThenGrp, cb: Function): void;
@@ -81,6 +83,7 @@ export class HelperMongo implements IHelperMongo {
         this.logger[debug ? "activate" : "deactivate"]();
         return this;
     }
+
     /**
      * @description Returns Groupby which can be used in Mongo functions
      * @param  {string} group_by
@@ -109,14 +112,17 @@ export class HelperMongo implements IHelperMongo {
                 format = "%Y-%m-%dT%H"
                 break;
 
+            case "minute":
             case "min":
                 format = "%Y-%m-%dT%H:%M"
                 break;
 
+            case "second":
             case "sec":
                 format = "%Y-%m-%dT%H:%M:%S"
                 break;
 
+            case "millisecond":
             case "milli":
                 format = "%Y-%m-%dT%H:%M:%S.%L"
                 break;
@@ -126,6 +132,13 @@ export class HelperMongo implements IHelperMongo {
         }
         return format;
     }
+
+    /**
+     * Validates if there is any document matching the given query
+     * @param collName collection name
+     * @param validate find() query
+     * @param cb callback
+     */
     public validateExistence(collName: string, validate: any, cb: Function): void {
         this.db.collection(collName).findOne(validate.query || validate, function (err, result) {
             if (!result) {
@@ -135,18 +148,22 @@ export class HelperMongo implements IHelperMongo {
             }
         });
     }
-    public validateNonExistence(collName: string, validations: any, cb: ICallback): void {
 
-        // if(this.isValidateObject(validations)) {
-        //     validations = [validations];
-        // }
+    /**
+     * Validate non existence for all the given validations
+     * @param collName collection name
+     * @param validations 
+     * @param cb 
+     */
+    public validateNonExistence(collName: string, validations: IValidationNonExistence | IValidationNonExistence[], cb: ICallback): void {
+
         if (!Array.isArray(validations)) {
             validations = [validations]
         }
 
         sh_async.everySeries(
             validations,
-            (condition: IValidationObject, cb1) => {
+            (condition: IValidationNonExistence, cb1) => {
                 this.db.collection(collName).findOne(condition.query || condition, (err, result) => {
                     if (result) {
                         cb1(condition.errMsg || "Duplicate Document")
@@ -161,7 +178,14 @@ export class HelperMongo implements IHelperMongo {
         )
     }
 
-    public validateNonExistenceOnUpdate(collName: string, obj: IMongoDoc, validations: any, cb: Function): void {
+    /**
+     * Validates that the updated document does not collide with unique fields in the collection
+     * @param collName collection name
+     * @param obj Updated document
+     * @param validations 
+     * @param cb Callback
+     */
+    public validateNonExistenceOnUpdate(collName: string, obj: IMongoDoc, validations: IValidationNonExistenceUpdate | IValidationNonExistenceUpdate[], cb: Function): void {
         let id;
         try {
             id = this.db.ObjectId(obj._id);
@@ -169,9 +193,6 @@ export class HelperMongo implements IHelperMongo {
             return cb("Invalid Id")
         }
 
-        // if (this.isValidationOnUpdate(validations)) {
-        //     validations = [validations];
-        // }
         if (!Array.isArray(validations)) {
             validations = [validations];
         }
@@ -188,14 +209,16 @@ export class HelperMongo implements IHelperMongo {
                 if (getExistingObj) {
                     sh_async.each(
                         validations,
-                        (field: IValidationOnUpdate, cb2) => {
+                        (field: IValidationNonExistenceUpdate, cb2) => {
                             if (getExistingObj[field.name] != obj[field.name]) {
                                 dbOperations += 1;
+
                                 let mongoQuery = {};
-                                mongoQuery[field.name] = obj[field.name];
-                                if (field.query) {
+                                mongoQuery[field.name] = obj[field.name]; // default mongoQuery
+                                if (field.query) { // use the specified query if available
                                     mongoQuery = field.query;
                                 }
+
                                 this.db.collection(collName).findOne(mongoQuery, {
                                     _id: 1
                                 }, function (err, result) {
@@ -217,6 +240,13 @@ export class HelperMongo implements IHelperMongo {
             cb(err, dbOperations);
         })
     }
+
+    /**
+     * Get the document that matches the given id
+     * @param collName collection name
+     * @param id mongoDB document id
+     * @param cb 
+     */
     public getById(collName: string, id: string, cb: ICallback): void {
         try {
             id = this.db.ObjectId(id);
@@ -228,7 +258,14 @@ export class HelperMongo implements IHelperMongo {
             _id: id
         }, cb)
     }
-    public getMaxValue(collName: string, obj: IMaxValue, cb: Function): void {
+
+    /**
+     * Get the max value of a numerical field in a collection
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
+    private getMaxValue(collName: string, obj: IMaxValue, cb: Function): void {
         /**
          * Flow 
          * match -> unwind(optional) -> group (To find max)
@@ -264,6 +301,13 @@ export class HelperMongo implements IHelperMongo {
             }
         });
     }
+
+    /**
+     * Get the next sequence number of a numerical field in a collection
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     public getNextSeqNo(collName: string, obj: IMaxValue, cb: Function): void {
         this.getMaxValue(collName, obj, (err, result) => {
             if (!err) {
@@ -308,26 +352,51 @@ export class HelperMongo implements IHelperMongo {
             }
         })
     }
-    public update(collName: string, obj: IMongoDoc, cb: Function): void {
+
+    /**
+     * Updates the document excluding the specified fields from the object 
+     * @param collName collection name
+     * @param obj Mongo Document 
+     * @param exclude fields to be excluded
+     * @param cb Callback
+     */
+    public update(collName: string, obj: IMongoDoc, exclude?: string[], cb?: Function): void {
+        if (!exclude) {
+            throw Error("Callback not specified");
+        }
+        if (!cb && typeof exclude == 'function') {
+            cb = exclude;
+            exclude = [];
+        }
+
         let id;
         try {
             id = this.db.ObjectId(obj._id);
         } catch (err) {
             return cb("Invalid Id");
         }
-        delete obj._id;
-        obj.utime = new Date();
+        let updateObj = Object.assign({}, obj);
+        delete updateObj._id;
+        updateObj.utime = new Date();
+
+        exclude.forEach(key => delete updateObj[key]);
 
         this.db.collection(collName).update({
             _id: id
         }, {
-                $set: obj
+                $set: updateObj
             }, {
                 upsert: false,
                 multi: false,
             }, cb);
     }
 
+    /**
+     * Get a list of documents in a collection - can be used for CRUD - list apis
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     public getList(collName: string, obj: IGetList, cb: Function): void {
         obj = obj || {};
         obj.query = this.getObj(obj.query);
@@ -366,6 +435,14 @@ export class HelperMongo implements IHelperMongo {
             })
         })
     }
+
+    /**
+     * Removes a document/sets isDeleted flag on the document
+     * @param collName collection name
+     * @param id mongoDb document id
+     * @param removeDoc document will be removed if true, else will set isDeleted flag on the document
+     * @param cb Callback
+     */
     public remove(collName: string, id: string, removeDoc: boolean | Function, cb?: Function): void {
 
         try {
@@ -397,6 +474,13 @@ export class HelperMongo implements IHelperMongo {
                 }, cb);
         }
     }
+
+    /**
+     * Splits the selected range of documents by time and then groups them based on grouping logic
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     public splitTimeThenGrp(collName: string, obj: ISplitTimeThenGrp, cb: Function): void {
         /**
          * LOGIC
@@ -418,7 +502,7 @@ export class HelperMongo implements IHelperMongo {
         }
 
         let dateField: string | object = "$" + obj.key.name;
-        if (obj.key.type.toLowerCase() == "unix") {
+        if (obj.key.type && obj.key.type.toLowerCase() == "unix") {
             dateField = {
                 $add: [new Date(0), "$" + obj.key.name]
             }
@@ -444,14 +528,8 @@ export class HelperMongo implements IHelperMongo {
             group[reqField][obj.groupLogic || "$first"] = "$" + reqField;
         })
 
-        let aggregate: object[] = [
-            { $match: match },
-            { $project: project1 },
-            { $group: group }
-        ]
-
         let project2 = {}
-        if (obj.key.type.toLowerCase() == "unix") {
+        if (obj.key.type && obj.key.type.toLowerCase() == "unix") {
             project2[obj.key.name] = {
                 $subtract: ["$_id", new Date(0)]
             }
@@ -465,10 +543,24 @@ export class HelperMongo implements IHelperMongo {
                 project2[reqField] = 1
             })
         }
-        aggregate.push({ $project: project2 });
+
+        let aggregate: object[] = [
+            { $match: match },
+            { $project: project1 },
+            { $group: group },
+            { $project: project2 }
+        ]
+        // aggregate.push({ $project: project2 });
 
         this.db.collection(collName).aggregate(aggregate, cb);
     }
+
+    /**
+     * Selects n number of documents from m range of selected documents based on grouping logic
+     * @param collName collection name
+     * @param obj options
+     * @param cb Callback
+     */
     public selectNinM(collName: string, obj: ISelectNinM, cb: Function): void {
         /**
          * LOGIC
@@ -541,12 +633,12 @@ export class HelperMongo implements IHelperMongo {
     }
 
 
-    private isValidationOnUpdate(data: IValidationOnUpdate | IValidationOnUpdate[]): data is IValidationOnUpdate {
-        return (<IValidationOnUpdate[]>data).length !== undefined;
+    private isValidationOnUpdate(data: IValidationNonExistenceUpdate | IValidationNonExistenceUpdate[]): data is IValidationNonExistenceUpdate {
+        return (<IValidationNonExistenceUpdate[]>data).length !== undefined;
     }
 
-    private isValidateObject(data: IValidationObject | IValidationObject[]): data is IValidationObject {
-        return (<IValidationObject[]>data).length !== undefined;
+    private isValidateObject(data: IValidationNonExistence | IValidationNonExistence[]): data is IValidationNonExistence {
+        return (<IValidationNonExistence[]>data).length !== undefined;
     }
     private getObj(data: string | object, sort?: boolean): object {
         if (data) {
