@@ -37,20 +37,26 @@ export class JWT implements IJWT {
         this.helperResp = new HelperResp(debug);
         this.logger[debug ? "activate" : "deactivate"]();
     }
+
+    /**
+     * Login Handler
+     */
     public login(): IMiddleware {
         return (req, res) => {
 
-            function loginCb() {
-                return (err, user) => {
+            function loginCb(): (err, user: object, msg?: string) => void {
+                return (err, user, msg) => {
                     if (user) {
                         this.sendToken(res, user);
                     } else {
                         if (err) {
                             this.logger.error(err);
-                        }
-
-                        err ? this.helperResp.serverError(res) :
+                            this.helperResp.serverError(res)
+                        } else if (msg) {
+                            this.helperResp.failed(res, msg)
+                        } else {
                             this.helperResp.unauth(res, "Invalid Credentials");
+                        }
                     }
                 }
             }
@@ -63,9 +69,12 @@ export class JWT implements IJWT {
                 }, (err, user) => {
                     if (user) {
                         // this.logger.log('user:', user);
-                        let valid = this.helper.verifySaltHash((user.password || user.pwd), req.body.password);
-                        loginCb.call(this)(err, valid ? user : false);
-                        // loginCb.call(this)(null, user);
+                        if (this.isDefined(req.body.password)) {
+                            let valid = this.helper.verifySaltHash(user.password, req.body.password);
+                            loginCb.call(this)(err, valid ? user : false);
+                        } else {
+                            loginCb.call(this)(null, null, "Please specify a password");
+                        }
                     } else {
                         loginCb.call(this)(err, user);
                     }
@@ -76,18 +85,23 @@ export class JWT implements IJWT {
         }
     }
 
+    /**
+     * Registration handler
+     */
     public register(): IMiddleware {
         return (req, res) => {
 
-            function registerCb() {
-                return (err, user) => {
+            function registerCb(): (err, user: object, msg?: string) => void {
+                return (err, user, msg) => {
                     if (user) {
                         this.sendToken(res, user);
                     } else {
                         if (err) {
                             this.logger.error(err);
+                            this.helperResp.serverError(res);
+                        } else {
+                            this.helperResp.failed(res, msg);
                         }
-                        this.helperResp.serverError(res);
                     }
                 }
             }
@@ -107,7 +121,13 @@ export class JWT implements IJWT {
                             this.helperResp.failed(res, "Duplicate User");
                         } else {
                             // We are good
-                            req.body.password = this.helper.saltHash(req.body.password);
+                            if (this.isDefined(req.body.password)) {
+                                req.body.password = this.helper.saltHash(req.body.password);
+                                // } else if (this.isDefined(req.body.pwd)) {
+                                //     req.body.pwd = this.helper.saltHash(req.body.pwd);
+                            } else {
+                                return registerCb.call(this)(null, null, "Please specify a password");
+                            }
                             this.db.collection(this.options.collName).insert(req.body, registerCb.call(this));
                         }
                     }
@@ -118,6 +138,10 @@ export class JWT implements IJWT {
         }
     }
 
+    /**
+     * Validation handler
+     * @param {string=} whitelist - Whitelisted url, that dont need authentication
+     */
     public validate(whitelist?: (string | IUrl)[]): IMiddleware {
         return (req, res, next) => {
 
@@ -149,6 +173,13 @@ export class JWT implements IJWT {
                 return next();
             }
 
+
+            /**
+             * Token shall be present in either body | header(x-access-token) | query
+             * Token is then decoded
+             * token expiry date is validated
+             * Token issuer(iss) is validated
+             */
             let token = (req.headers["x-access-token"] || req.body && req.body.access_token) || (req.query && req.query.access_token) || null; // Get JWT Token
             if (token) {
                 let decToken;
@@ -189,6 +220,10 @@ export class JWT implements IJWT {
         return data == undefined || data == null;
     }
 
+    private isDefined(data) {
+        return (data != undefined && data != null)
+    }
+
     private sendToken(res, user) {
         let expires = moment().add(this.options.validity, "day").toDate();
         let token = {
@@ -197,7 +232,6 @@ export class JWT implements IJWT {
         }
 
         let encToken = (<any>jwt).encode(token, this.options.secret, "HS256");
-        // res.cookie("token", encToken, { signed: true })
 
         res.status(200).send({
             error: false,
