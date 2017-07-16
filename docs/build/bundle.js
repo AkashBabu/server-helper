@@ -87252,39 +87252,28 @@ module.exports = function (app) {
                 }]
             },
             "CRUD": {
-                desc: "",
-                initialCode: "",
-                methods: [{
-                    id: '',
-                    name: '',
-                    nav: '',
-                    desc: '',
-                    params: [{
-                        name: '',
-                        type: '',
-                        desc: '',
-                        default: ''
-                    }],
-                    example: ["\n\n                   "]
-                }]
+                desc: "Create standard CRUD APIs",
+                initialCode: "\nvar CRUD = require('server-helper').Crud;\nfunction create() {\n    return (req, res, next) => {\n        // Some Operation\n    }\n}\nvar user = {\n    create: create(),\n    get: get(),\n    list: list(),\n    update: update(),\n    remove: remove()\n}            \n\nvar router = express.Router();\n\nrouter.use(\"/user\", new CRUD(user));\n\n// The above line would create 5 APIs as follows\n// POST /user/ -- user.create\n// GET /user/:id -- user.get\n// GET /user/ -- user.list\n// PUT /user/:id -- user.update\n// DELETE /user/:id -- user.remove\n                "
             },
-            "CRUD-Handlers": {
-                desc: "",
-                initialCode: "",
-                methods: [{
-                    id: '',
-                    name: '',
-                    nav: '',
-                    desc: '',
-                    params: [{
-                        name: '',
-                        type: '',
-                        desc: '',
-                        default: ''
-                    }],
-                    example: ["\n\n                   "]
-                }]
-            },
+            // "CRUD-Handlers": {
+            //     desc: "",
+            //     initialCode: ``,
+            //     methods: [{
+            //         id: '',
+            //         name: '',
+            //         nav: '',
+            //         desc: '',
+            //         params: [{
+            //             name: '',
+            //             type: '',
+            //             desc: '',
+            //             default: ''
+            //         }],
+            //         example: [`
+
+            //        `]
+            //     }]
+            // },
             "Session-JWT": {
                 desc: "JWT implementation on express",
                 initialCode: "\nvar JWT = require(\"server-helper\").Session.JWT\nvar options = {\n    collName: \"users\", // users collection\n    connStr: 'jwt_test', // MongoDB connection string\n    secret: 'secret',\n    validity: 1, // In days\n    login?: (body, cb) => { cb(null, user) },\n    register?: (body, cb) => { cb(null, user) },\n    validate?: (whiteList?: string | string[], cb) => { cb(err, user) }\n}\nvar jwt = new JWT(options, true);\n\napp.post(\"/login\", jwt.login())\napp.post(\"/register\", jwt.register())\napp.use(jwt.validate())\n\n// all other authenticated routes follow this\n                ",
@@ -87321,17 +87310,31 @@ module.exports = function (app) {
                 }]
             },
             "Session-Cookie": {
-                desc: "",
-                initialCode: "",
-                methods: [{}]
-                // "Session-Cookie": {
-                //     methods: [{
-                //         name: 'Test1',
-                //         id: 'session.jwt.test1',
-                //         nav: 'test1'
-                //     }]
-                // }
-            } };
+                desc: "Cookie Session implementation in Express",
+                initialCode: "\nvar Cookie = require('server-helper').Session.Cookie;\n\ninterface ICookieOptions {\n    collName: string;\n    connStr: string;\n    login: IPassportOptions;\n    register: IPassportOptions;\n    cookie: Object;\n    secret: string;\n    redisStore: Object;\n    passportSerializer?: (user, cb) => void;\n    passportDeserializer?: (userId, cb) => void;\n    passportLogin?: (req, email, passport, cb) => void;\n    passportRegister?: (req, email, passport, cb) => void;\n}\n\nvar options: ICookieOptions = {\n    collName: 'users', // user collection name\n    connStr: 'test', // mongoDB connection string\n    login: { // Passport Login options\n        successRedirect: '/index.html',\n        failureRedirect: '/login.html',\n        failureFlash: flash\n    },\n    register: { // Passport Register options\n        successRedirect: '/index.html',\n        failureRedirect: '/register.html',\n        failureFlash: flash\n    },\n    cookie: { // express-session cookie options\n        maxAge: 1000 * 60 * 60 * 24,\n        sameSite: true,\n    },\n    secret: 'secret',\n    redisStore: { // Connect-redis connection options\n        ttl: 1000 * 60 * 60 * 24,\n        host: \"localhost\",\n        port: 6379,\n        prefix: \"sess:\"\n    }\n}\n// if you wish to have custom logic for passport local-strategy then you must specify options.passportSerializer, options.passportDeserializer, options.passportLogin and options.passportRegister functions. These function signature are similar to that of passport functions\n\nvar passport = require(\"passport\");\nvar cookie = new Cookie(options);\nvar app = express();\n\n// this order has to be maintained\ncookie.configurePassport(passport);\ncookie.configureSession(app)\n\napp.use(cookie.validate(['/login.html', '/register.html', {method: 'POST', url: '/login'}, '/register'], '/portal/login'))\n\napp.post('/login', cookie.login());\napp.post('/register', cookie.register());\n\napp.get(\"/logout\", cookie.logout());\n                ",
+                methods: [{
+                    id: 'login',
+                    name: 'login() => Express Middleware',
+                    nav: 'login',
+                    desc: 'Validates if the user exists and then sets Session Cookie on the express response object'
+                }, {
+                    id: 'register',
+                    name: 'register() => Express Middleware',
+                    nav: 'register',
+                    desc: 'Will create and insert a User and sets Session Cookies on the express response object'
+                }, {
+                    id: 'logout',
+                    name: 'logout() => Express Middleware',
+                    nav: 'logout',
+                    desc: 'Will remove cookie session and go to next() router in the middlewares'
+                }, {
+                    id: 'validate',
+                    name: 'validate(whitelist?: (string | IUrl)[], failureRedirect?: string): Express Middleware',
+                    nav: 'validate',
+                    desc: 'If the url is whitelisted next() middleware is called. If the cookie exists n if the cookie is valid then req.user is set on express request object. If not then the user is redirected to failureRedirectUrl else 401 is sent'
+                }]
+            }
+        };
     }]);
 };
 

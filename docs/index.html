@@ -38,18 +38,10 @@
                 <!--Initialisation Code-->
                 <div class="initial">
                     <p class="desc" ng-bind="vm.currContent.desc"></p>
-                    <!--<pre><code class="language-javascript" ng-prism ng-bind="vm.currContent.initialCode"></code></pre>-->
-                    <pre><code class="language-javascript" ng-prism ng-bind="vm.currContent.initialCode"></code></pre>
+                    <pre><code class="language-javascript"  ng-bind="vm.currContent.initialCode"></code></pre>
                 </div>
 
-                <!--Methods list-->
-                <!--<md-list class="md-dense">
-                    <md-headline>Methods</md-headline>
-                    <md-list-item ng-repeat="method in vm.currContent.methods">
-                        <a ng-href="{{'#' + method.id}}">{{method.nav}}</a>
-                    </md-list-item>
-                </md-list>-->
-                <span class="md-headline">Methods</span>
+                <span class="md-headline" ng-if="vm.currContent.methods">Methods</span>
                 <ul class="method-list" ng-if="::vm.currContent.methods">
                     <li du-scrollspy="{{method.id}}" ng-repeat="method in vm.currContent.methods">
                         <a ng-href="{{'#' + method.id}}">{{method.nav}}</a>
@@ -82,10 +74,10 @@
                         <span ng-switch="::vm.isString(method.example)">
                         <span ng-switch-when="true">
                             <!--<js-code ng-bind="method.example"></js-code>-->
-                            <pre><code class="language-javascript" ng-prism ng-bind="method.example"></code></pre>
+                            <pre><code class="language-javascript"  ng-bind="method.example"></code></pre>
                         </span>
                         <span ng-switch-when="false">
-                            <pre ng-repeat="example in method.example"><code class="language-javascript" ng-prism ng-bind="example"></code></pre>
+                            <pre ng-repeat="example in method.example"><code class="language-javascript" ng-bind="example"></code></pre>
                         </span>
                         </span>
                     </div>
