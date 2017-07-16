@@ -23,7 +23,7 @@ describe("HelperMongo", () => {
         db.dropDatabase(done)
     })
 
-    describe("#getDateFormat()", () => {
+    describe.skip("#getDateFormat()", () => {
 
         beforeEach(done => {
             db.collection(userColl).remove({}, done)
@@ -1186,7 +1186,7 @@ describe("HelperMongo", () => {
         })
     })
 
-    describe("#splitTimeThenGrp()", () => {
+    describe.skip("#splitTimeThenGrp()", () => {
         it("should split the given time into required slot and pick one point from each", done => {
             var data = []
             var currTs = moment()
@@ -1229,7 +1229,7 @@ describe("HelperMongo", () => {
         })
     })
 
-    describe("#selectNinM()", () => {
+    describe.skip("#selectNinM()", () => {
         it("should select N points from M points, given that N < M", (done) => {
             var data = [];
             for (var i = 0; i < 100; i++) {
