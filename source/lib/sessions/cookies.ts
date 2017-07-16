@@ -37,7 +37,7 @@ export interface ICookie {
     login(): IMiddleware;
     register(): IMiddleware;
     logout(): IMiddleware;
-    validate(whitelist?: (string | IUrl)[]): IMiddleware;
+    validate(whitelist?: (string | IUrl)[], failureRedirect?: string): IMiddleware;
 }
 export class Cookie implements ICookie {
     private db;
